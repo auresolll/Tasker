@@ -9,13 +9,17 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import * as path from 'path';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as ngrok from '@ngrok/ngrok';
+import { LoggingInterceptor } from './shared/interception/logging.interceptor';
+import { Logging } from './shared/providers/logging/logging';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  const logging = new Logging();
+  
   app.use(cookieParser());
   app.useGlobalInterceptors(
-    // new LoggingInterceptor(logging),
+    new LoggingInterceptor(logging),
     new TransformInterceptor(),
   );
   app.useGlobalFilters(new ExceptionsFilter());
@@ -34,7 +38,7 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(PORT, () => {
-    console.log(`Server đang chạy trên PORT ${PORT}`);
+    logging.debug(`Server đang chạy trên PORT ${PORT}`);
   });
 
   ngrok

@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CoreModule } from './core/core.module';
 import { environments } from './environments/environments';
 import { FeaturesModule } from './features/features.module';
+import { AppController } from './app/controllers/app.controller';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { FeaturesModule } from './features/features.module';
       autoIndex: false,
     }),
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

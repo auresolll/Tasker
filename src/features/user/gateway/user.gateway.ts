@@ -42,8 +42,6 @@ export class UserGateway implements OnGatewayDisconnect, OnGatewayConnection {
 
     handleConnection() {
         this.online++;
-        console.log(this.online);
-        
     }
 
     handleDisconnect(socket: Socket) {
