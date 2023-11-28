@@ -1,0 +1,10 @@
+{
+	"facebook": {
+		"appId": 1234,
+		"appSecret": "secret"
+	},
+	"google": {
+		"appId": 1234,
+		"appSecret": "secret"
+	}
+}
