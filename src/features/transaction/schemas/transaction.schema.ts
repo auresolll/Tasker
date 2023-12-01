@@ -10,6 +10,12 @@ export enum ENUM_TRANSACTION_TYPE {
   TRANSFER_MONEY = 'Chuyển tiền',
 }
 
+export enum ENUM_TRANSACTION_STATUS {
+  PEENING = 'Đang xử lý',
+  FAILED = 'Thất bại',
+  SUCCEED = 'Thành công',
+}
+
 @Schema({ timestamps: true })
 export class Transaction extends Document {
   @Prop({ type: ObjectId, ref: User.name })
@@ -21,8 +27,14 @@ export class Transaction extends Document {
   @Prop({ type: Number, required: true, min: 0 })
   amount: number;
 
+  @Prop({ type: String, required: true })
+  accountNumber: string;
+
   @Prop({ enum: ENUM_TRANSACTION_TYPE, required: true })
   description: ENUM_TRANSACTION_TYPE;
+
+  @Prop({ enum: ENUM_TRANSACTION_STATUS, required: true })
+  status: ENUM_TRANSACTION_STATUS;
 
   @Prop({ type: Date, default: null })
   deletedAt: Date;
