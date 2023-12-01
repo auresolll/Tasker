@@ -1,7 +1,0 @@
-{
-	"vapid": {
-		"subject": "mailto:example@example.com",
-		"privateKey": "tP-bKizDh3AJoYaGfNSLgRhbjFAREwG3pQMWt3eRsPQ",
-		"publicKey": "BIrVrag2g-up6-NOOBMI48NFPwVa6K28I5pg3sc_hNpjxDEVfE5ELvAtfFZvLAMSTbVoKDXCPsx_Cqb25F2RmFI"
-	}
-}

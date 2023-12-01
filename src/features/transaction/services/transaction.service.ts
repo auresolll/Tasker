@@ -1,3 +1,4 @@
+import { User } from './../../user/schemas/user.schema';
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { FilterQuery, Model } from "mongoose";
@@ -23,5 +24,20 @@ export class TransactionService {
         .sort({ createdAt: -1 }),
       this.TransactionModel.count(filter),
     ]);
+  }
+
+  public getDirectTransactionMySelfFilter(
+    user: User,
+  ): FilterQuery<Transaction> {
+    return {
+      $or: [
+        {
+          receiver: user._id,
+        },
+        {
+          depositor: user._id,
+        },
+      ],
+    };
   }
 }

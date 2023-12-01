@@ -11,8 +11,10 @@ import { AppController } from './app/controllers/app.controller';
     FeaturesModule,
     CoreModule,
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(environments.mongoUri, {
-      autoIndex: false,
+    MongooseModule.forRootAsync({
+      useFactory: async () => ({
+        uri: environments.mongoUri,
+      }),
     }),
   ],
   controllers: [AppController],

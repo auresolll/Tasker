@@ -1,18 +1,22 @@
-import { Prop, Schema } from "@nestjs/mongoose";
-import { Document } from "mongoose";
-import { User } from "src/features/user/schemas/user.schema";
-import { ObjectId } from "src/shared/mongoose/object-id";
-import { createSchemaForClassWithMethods } from "../../../shared/mongoose/create-schema";
+import { Prop, Schema } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+import { User } from 'src/features/user/schemas/user.schema';
+import { ObjectId } from 'src/shared/mongoose/object-id';
+import { createSchemaForClassWithMethods } from '../../../shared/mongoose/create-schema';
 
 export enum ENUM_TRANSACTION_TYPE {
-  WITHDRAWAL = "Rút tiền",
-  RECHARGE = "Nạp tiền",
+  WITHDRAWAL = 'Rút tiền',
+  RECHARGE = 'Nạp tiền',
+  TRANSFER_MONEY = 'Chuyển tiền',
 }
 
 @Schema({ timestamps: true })
 export class Transaction extends Document {
   @Prop({ type: ObjectId, ref: User.name })
-  user: User;
+  receiver: User;
+
+  @Prop({ type: ObjectId, ref: User.name })
+  depositor: User;
 
   @Prop({ type: Number, required: true, min: 0 })
   amount: number;

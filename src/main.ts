@@ -48,7 +48,7 @@ async function bootstrap() {
       domain: 'mint-flexible-tortoise.ngrok-free.app'
     })
     .then((listener) =>
-      console.log(`Ingress established at: ${listener.url()}`),
+      logging.debug(`Ingress established at: ${listener.url()}`),
     );
 }
 bootstrap();
