@@ -171,8 +171,17 @@ export class TransactionController {
     if (transfer_type === ENUM_TRANSACTION_TYPE.RECHARGE) {
       payload.receiver = user._id; // ID of ADMIN,
       payload.depositor = user._id;
+      user.balance += amount;
     }
 
-    return this.TransactionModel.create(payload);
+    const isSuccessCreated = await this.TransactionModel.create(payload);
+
+    if (transfer_type === ENUM_TRANSACTION_TYPE.RECHARGE && isSuccessCreated) {
+      isSuccessCreated.status = ENUM_TRANSACTION_STATUS.SUCCEED;
+    }
+    return {
+      transaction: await isSuccessCreated.save(),
+      user: await user.save(),
+    };
   }
 }
