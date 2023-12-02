@@ -4,20 +4,33 @@ import {
   Controller,
   Get,
   NotFoundException,
+  Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FilterQuery, Model } from 'mongoose';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { FilterQuery, Model, Types } from 'mongoose';
 import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
 import { User } from 'src/features/user/schemas/user.schema';
 import { ENUM_ROLE_TYPE, getAllRoles } from 'src/shared/constants/role';
+import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
 import { Roles } from 'src/shared/utils/roles.decorator';
 import { RolesGuard } from 'src/shared/utils/roles.guard';
-import { CreateTransactionDto } from '../dtos/create-transaction';
+import {
+  CreateTransactionDto,
+  CreateTransactionTransferMoneyDto,
+} from '../dtos/create-transaction';
 import { FetchTransaction } from '../dtos/fetch-transaction';
 import {
   ENUM_TRANSACTION_STATUS,
@@ -25,6 +38,11 @@ import {
   Transaction,
 } from '../schemas/transaction.schema';
 import { TransactionService } from '../services/transaction.service';
+import * as fs from 'fs';
+import * as moment from 'moment';
+import { pathUpload } from 'src/shared/utils/file-upload.utils';
+import { MailerService } from '@nestjs-modules/mailer';
+import { RecoverService } from 'src/features/user/services/recover.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -32,6 +50,7 @@ import { TransactionService } from '../services/transaction.service';
 export class TransactionController {
   constructor(
     private readonly transactionService: TransactionService,
+    private readonly recoverService: RecoverService,
 
     @InjectModel(Transaction.name) private TransactionModel: Model<Transaction>,
     @InjectModel(User.name) private UserModel: Model<User>,
@@ -103,7 +122,9 @@ export class TransactionController {
   @ApiTags('Private Transaction')
   @Roles(...getAllRoles())
   @Post('transfer-money')
-  async createTransactionTransferMoney(@Body() body: CreateTransactionDto) {
+  async createTransactionTransferMoney(
+    @Body() body: CreateTransactionTransferMoneyDto,
+  ) {
     const [user_receiver, user_depositor] = await Promise.all([
       this.UserModel.findById(body.receiver),
       this.UserModel.findById(body.depositor),
@@ -155,33 +176,93 @@ export class TransactionController {
   @Post('')
   async createTransaction(
     @CurrentUser() user: User,
-    @Query('transfer_type') transfer_type: ENUM_TRANSACTION_TYPE,
-    @Query('amount') amount: number,
-    @Query('account_number') account_number: string,
+    @Query() query: CreateTransactionDto,
   ) {
+    const { transaction_type, amount, accountNumber } = query;
     const payload: Partial<Transaction> = {
       receiver: user._id,
-      depositor: user._id, // ID Of ADMIN
-      description: transfer_type,
+      depositor: new Types.ObjectId(
+        '655dc01ef63e8362106b22d7',
+      ) as unknown as User, // ID Of ADMIN
+      description: transaction_type,
       amount: amount,
-      accountNumber: account_number,
+      accountNumber: accountNumber,
       status: ENUM_TRANSACTION_STATUS.PEENING,
     };
 
-    if (transfer_type === ENUM_TRANSACTION_TYPE.RECHARGE) {
-      payload.receiver = user._id; // ID of ADMIN,
+    if (transaction_type === ENUM_TRANSACTION_TYPE.RECHARGE) {
+      payload.receiver = new Types.ObjectId(
+        '655dc01ef63e8362106b22d7',
+      ) as unknown as User; // ID of ADMIN,
       payload.depositor = user._id;
       user.balance += amount;
     }
 
     const isSuccessCreated = await this.TransactionModel.create(payload);
 
-    if (transfer_type === ENUM_TRANSACTION_TYPE.RECHARGE && isSuccessCreated) {
+    if (
+      transaction_type === ENUM_TRANSACTION_TYPE.RECHARGE &&
+      isSuccessCreated
+    ) {
       isSuccessCreated.status = ENUM_TRANSACTION_STATUS.SUCCEED;
     }
+
     return {
       transaction: await isSuccessCreated.save(),
       user: await user.save(),
+    };
+  }
+
+  @ApiTags('Private Transaction')
+  @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
+  @Patch('withdrawal')
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('image'))
+  async updateStatusWithdrawalTransaction(
+    @Query('transactionID', new ParseObjectIdPipe()) id: string,
+    @Query('receiverID', new ParseObjectIdPipe()) user: string,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    const [transaction, receiver] = await Promise.all([
+      this.TransactionModel.findById(id),
+      this.UserModel.findById(user),
+    ]);
+
+    if (!transaction)
+      throw new NotFoundException(`Không tìm thấy #transaction: ${id}`);
+
+    if (!receiver)
+      throw new NotFoundException(`Không tìm thấy #receiver: ${user}`);
+
+    if (transaction.description !== ENUM_TRANSACTION_TYPE.WITHDRAWAL)
+      throw new NotFoundException(`API này chỉ dành cho rút tiền`);
+
+    transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
+    receiver.balance -= transaction.amount;
+
+    const name = `receiverID:${user}#transactionID:${id}#Date:${moment().format(
+      'yyyy-mm-dd',
+    )}#fileName:${image.originalname}`;
+
+    const PATH = `${pathUpload}/${name}`;
+
+    fs.writeFileSync(PATH, image.buffer);
+
+    const sendMail = await this.recoverService.sendEmailWithAttachment(
+      'thinhlevan201@gmail.com',
+      name,
+      PATH,
+    );
+    
+    const [transactionSucceed, receiverSucceed] = await Promise.all([
+      transaction.save(),
+      receiver.save(),
+    ]);
+
+    return {
+      transaction: transactionSucceed,
+      receiver: receiverSucceed,
+      sendMail: sendMail ? 'Success' : 'Failed',
     };
   }
 }

@@ -19,6 +19,7 @@ import { UserService } from "../services/user.service";
 import { environments } from "./../../../environments/environments";
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { MailerService } from "@nestjs-modules/mailer";
+import path from "path";
 
 @ApiTags("Recover")
 @Controller("recover")

@@ -16,7 +16,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const logging = new Logging();
-  
+
   app.use(cookieParser());
   app.useGlobalInterceptors(
     new LoggingInterceptor(logging),
@@ -33,6 +33,14 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Apis')
     .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'accessToken',
+    )
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'refreshToken',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
@@ -45,7 +53,7 @@ async function bootstrap() {
     .connect({
       addr: PORT,
       authtoken: '2Yn1Zdp2gr0iRt0yzJXsQ9x07mo_3sSVhhfQXsCbQJGatjNrw',
-      domain: 'mint-flexible-tortoise.ngrok-free.app'
+      domain: 'mint-flexible-tortoise.ngrok-free.app',
     })
     .then((listener) =>
       logging.debug(`Ingress established at: ${listener.url()}`),

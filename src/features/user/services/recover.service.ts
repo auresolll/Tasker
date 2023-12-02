@@ -1,18 +1,18 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { randomString } from "../../../shared/utils/random-string";
-import { ENUM_RECOVER_TYPE, Recover } from "../schemas/recover.schema";
-import { User } from "../schemas/user.schema";
-import { environments } from "./../../../environments/environments";
-import { MailerService } from "@nestjs-modules/mailer";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { randomString } from '../../../shared/utils/random-string';
+import { ENUM_RECOVER_TYPE, Recover } from '../schemas/recover.schema';
+import { User } from '../schemas/user.schema';
+import { environments } from './../../../environments/environments';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class RecoverService {
   constructor(
     private mailerService: MailerService,
 
-    @InjectModel(Recover.name) private recoveryModel: Model<Recover>
+    @InjectModel(Recover.name) private recoveryModel: Model<Recover>,
   ) {}
 
   async create(user: User, type: ENUM_RECOVER_TYPE, lengthCode: number = 50) {
@@ -23,13 +23,13 @@ export class RecoverService {
       type: type,
       owner: user._id,
       expiration: new Date(
-        Date.now() + environments.recoverCodeExpiration * 1000
+        Date.now() + environments.recoverCodeExpiration * 1000,
       ),
     });
   }
 
-  get(code: Recover["code"]) {
-    return this.recoveryModel.findOne({ code }).populate("owner");
+  get(code: Recover['code']) {
+    return this.recoveryModel.findOne({ code }).populate('owner');
   }
 
   delete(user: User): Promise<any> {
@@ -40,7 +40,7 @@ export class RecoverService {
     const { code, expiration } = await this.create(
       user,
       ENUM_RECOVER_TYPE.TWO_AUTHENTICATION,
-      5
+      5,
     );
 
     const url = environments.frontEndUrl;
@@ -48,14 +48,14 @@ export class RecoverService {
     try {
       const sendMail = await this.mailerService.sendMail({
         to: user.email,
-        subject: "Trình xác thực (2FA)",
-        template: "./twoAuthentication",
+        subject: 'Trình xác thực (2FA)',
+        template: './twoAuthentication',
         context: {
           name: user.username,
           url,
           code,
           expiration: Math.round(
-            (expiration.getTime() - Date.now()) / 1000 / 60 / 60
+            (expiration.getTime() - Date.now()) / 1000 / 60 / 60,
           ),
         },
       });
@@ -72,21 +72,34 @@ export class RecoverService {
 
     if (!recover)
       throw new HttpException(
-        "Không tìm thấy mã khôi phục",
-        HttpStatus.NOT_FOUND
+        'Không tìm thấy mã khôi phục',
+        HttpStatus.NOT_FOUND,
       );
 
     if (recover.expiration?.getTime() < Date.now()) {
       await this.delete(recover.owner);
 
-      throw new HttpException("Mã khôi phục hết hạn", HttpStatus.NOT_FOUND);
+      throw new HttpException('Mã khôi phục hết hạn', HttpStatus.NOT_FOUND);
     }
 
     if (recover.type !== type)
-      throw new HttpException("Invalid Type Code", HttpStatus.BAD_REQUEST);
+      throw new HttpException('Invalid Type Code', HttpStatus.BAD_REQUEST);
 
     await this.delete(recover.owner);
 
     return recover;
+  }
+
+  async sendEmailWithAttachment(to: string, nameFile: string, path: string) {
+    return this.mailerService.sendMail({
+      to: to,
+      subject: 'Thông báo giao dịch rút tiền của bạn',
+      // attachments: [
+      //   {
+      //     name: nameFile,
+      //     path: path,
+      //   },
+      // ],
+    });
   }
 }

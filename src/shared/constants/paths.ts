@@ -4,3 +4,4 @@ export const PATHS = {
     config: join(__dirname, '../../../config/'),
     mail: join(__dirname, '../../../mail/'),
 };
+

@@ -18,7 +18,8 @@ export class TransactionService {
   ) {
     return Promise.all([
       this.TransactionModel.find(filter)
-        .populate("user", blockFieldUser)
+        .populate("receiver", blockFieldUser)
+        .populate("depositor", blockFieldUser)
         .limit(limit)
         .skip(skip)
         .sort({ createdAt: -1 }),
