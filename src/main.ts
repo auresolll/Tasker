@@ -12,6 +12,8 @@ import * as ngrok from '@ngrok/ngrok';
 import { LoggingInterceptor } from './shared/interception/logging.interceptor';
 import { Logging } from './shared/providers/logging/logging';
 
+export const urlPublic = path.resolve(__dirname, "..", "src");
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 

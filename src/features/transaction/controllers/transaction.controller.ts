@@ -1,3 +1,4 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import {
   BadRequestException,
   Body,
@@ -20,9 +21,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FilterQuery, Model, Types } from 'mongoose';
+import { join } from 'path';
 import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
 import { User } from 'src/features/user/schemas/user.schema';
+import { RecoverService } from 'src/features/user/services/recover.service';
+import { urlPublic } from 'src/main';
 import { ENUM_ROLE_TYPE, getAllRoles } from 'src/shared/constants/role';
 import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
 import { Roles } from 'src/shared/utils/roles.decorator';
@@ -38,11 +42,9 @@ import {
   Transaction,
 } from '../schemas/transaction.schema';
 import { TransactionService } from '../services/transaction.service';
-import * as fs from 'fs';
-import * as moment from 'moment';
 import { pathUpload } from 'src/shared/utils/file-upload.utils';
-import { MailerService } from '@nestjs-modules/mailer';
-import { RecoverService } from 'src/features/user/services/recover.service';
+import * as moment from 'moment';
+import * as fs from 'fs';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -51,6 +53,7 @@ export class TransactionController {
   constructor(
     private readonly transactionService: TransactionService,
     private readonly recoverService: RecoverService,
+    private readonly mailerService: MailerService,
 
     @InjectModel(Transaction.name) private TransactionModel: Model<Transaction>,
     @InjectModel(User.name) private UserModel: Model<User>,
@@ -240,20 +243,35 @@ export class TransactionController {
     transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
     receiver.balance -= transaction.amount;
 
-    const name = `receiverID:${user}#transactionID:${id}#Date:${moment().format(
+    const nameImage = `receiverID:${user}#transactionID:${id}#Date:${moment().format(
       'yyyy-mm-dd',
     )}#fileName:${image.originalname}`;
 
-    const PATH = `${pathUpload}/${name}`;
+    const PATH = `${pathUpload}/${nameImage}`;
 
     fs.writeFileSync(PATH, image.buffer);
 
-    const sendMail = await this.recoverService.sendEmailWithAttachment(
-      'thinhlevan201@gmail.com',
-      name,
-      PATH,
+    console.log(
+      join(
+        urlPublic,
+        `assets/uploads/receiverID:6544c8129d85a36c1ddbc67f#transactionID:6569c491c1709e9661d829d6#Date:2023-00-Sa#fileName:316211150_1296404117881454_3040842759036012076_n.jpg`,
+      ),
     );
-    
+
+    const sendMail = await this.mailerService.sendMail({
+      to: receiver.email,
+      subject: 'Trình xác thực (2FA)',
+      attachments: [
+        {
+          name: 'file.ipg',
+          path: join(
+            urlPublic,
+            `assets/uploads/receiverID:6544c8129d85a36c1ddbc67f#transactionID:6569c491c1709e9661d829d6#Date:2023-00-Sa#fileName:316211150_1296404117881454_3040842759036012076_n.jpg`,
+          ),
+        },
+      ],
+    });
+
     const [transactionSucceed, receiverSucceed] = await Promise.all([
       transaction.save(),
       receiver.save(),

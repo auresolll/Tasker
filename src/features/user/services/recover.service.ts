@@ -1,11 +1,13 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { join } from 'lodash';
 import { Model } from 'mongoose';
 import { randomString } from '../../../shared/utils/random-string';
 import { ENUM_RECOVER_TYPE, Recover } from '../schemas/recover.schema';
 import { User } from '../schemas/user.schema';
 import { environments } from './../../../environments/environments';
-import { MailerService } from '@nestjs-modules/mailer';
+import { urlPublic } from 'src/main';
 
 @Injectable()
 export class RecoverService {
@@ -49,7 +51,7 @@ export class RecoverService {
       const sendMail = await this.mailerService.sendMail({
         to: user.email,
         subject: 'Trình xác thực (2FA)',
-        template: './twoAuthentication',
+        template: join(urlPublic,'templates/twoAuthentication'),
         context: {
           name: user.username,
           url,
@@ -93,13 +95,14 @@ export class RecoverService {
   async sendEmailWithAttachment(to: string, nameFile: string, path: string) {
     return this.mailerService.sendMail({
       to: to,
-      subject: 'Thông báo giao dịch rút tiền của bạn',
-      // attachments: [
-      //   {
-      //     name: nameFile,
-      //     path: path,
-      //   },
-      // ],
+      subject: 'Trình xác thực (2FA)',
+      template: join(urlPublic,'templates/twoAuthentication'),
+      context: {
+        name: 'dasd',
+        url: 'fds',
+        code: '12312',
+        expiration: Math.round(Date.now() / 1000 / 60 / 60),
+      },
     });
   }
 }

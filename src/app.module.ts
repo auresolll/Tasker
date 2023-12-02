@@ -11,8 +11,8 @@ import { imageFileFilter, storage } from './shared/utils/file-upload.utils';
 
 @Module({
   imports: [
-    FeaturesModule,
     CoreModule,
+    FeaturesModule,
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       useFactory: async () => ({

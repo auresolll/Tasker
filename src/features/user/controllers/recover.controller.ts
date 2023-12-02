@@ -19,7 +19,8 @@ import { UserService } from "../services/user.service";
 import { environments } from "./../../../environments/environments";
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { MailerService } from "@nestjs-modules/mailer";
-import path from "path";
+import path, { dirname, join } from "path";
+import { urlPublic } from "src/main";
 
 @ApiTags("Recover")
 @Controller("recover")
@@ -77,10 +78,13 @@ export class RecoverController {
   async recoverPassword(@Body() body: RecoverPasswordDto) {
     const user = await this.userService.validateUserByEmail(body.email);
 
+    
     const { code, expiration } = await this.recoverService.create(
       user,
       body.type
     );
+
+    
 
     const url = environments.frontEndUrl;
 
@@ -88,7 +92,7 @@ export class RecoverController {
       const sendMail = await this.mailerService.sendMail({
         to: user.email,
         subject: "Khôi phục mật khẩu của bạn",
-        template: "./recover", // This will fetch /template/recover.hbs
+        template: join(urlPublic,'templates/recover'), // This will fetch /template/recover.hbs
         context: {
           name: user.username,
           url,
