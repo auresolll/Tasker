@@ -1,49 +1,50 @@
-import { Categories } from "./../schemas/categories.schema";
-import { ObjectId } from "./../../../shared/mongoose/object-id";
+import { Categories } from './../schemas/categories.schema';
+import { ObjectId } from './../../../shared/mongoose/object-id';
 import {
   BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Post,
   Put,
   Query,
   UseGuards,
-} from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
-import * as lodash from "lodash";
-import { isArray, orderBy } from "lodash";
-import moment from "moment";
-import mongoose, { FilterQuery, Model, Types } from "mongoose";
-import { AuthNotRequired } from "src/features/auth/decorators/auth-not-required.decorator";
-import { CurrentUser } from "src/features/auth/decorators/current-user.decorator";
-import { JwtAuthGuard } from "src/features/auth/guard/jwt-auth.guard";
-import { blockFieldUser } from "src/shared/constants/blockField";
-import { ResponsePaginationDto } from "src/shared/constants/pagination";
-import { ENUM_ROLE_TYPE } from "src/shared/constants/role";
-import { ParseObjectIdPipe } from "src/shared/pipe/parse-object-id.pipe";
-import { getFieldIds } from "src/shared/utils/get-ids";
-import { generateSlug } from "src/shared/utils/random-string";
-import { Roles } from "src/shared/utils/roles.decorator";
-import { RolesGuard } from "src/shared/utils/roles.guard";
-import { CreateProductDto } from "../dtos/create-product.dto";
-import { FetchProductsByUser } from "../dtos/fetch-products-by-user";
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import * as lodash from 'lodash';
+import { isArray, orderBy } from 'lodash';
+import moment from 'moment';
+import mongoose, { FilterQuery, Model, Types } from 'mongoose';
+import { AuthNotRequired } from 'src/features/auth/decorators/auth-not-required.decorator';
+import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
+import { blockFieldUser } from 'src/shared/constants/blockField';
+import { ResponsePaginationDto } from 'src/shared/constants/pagination';
+import { ENUM_ROLE_TYPE } from 'src/shared/constants/role';
+import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
+import { getFieldIds } from 'src/shared/utils/get-ids';
+import { generateSlug } from 'src/shared/utils/random-string';
+import { Roles } from 'src/shared/utils/roles.decorator';
+import { RolesGuard } from 'src/shared/utils/roles.guard';
+import { CreateProductDto } from '../dtos/create-product.dto';
+import { FetchProductsByUser } from '../dtos/fetch-products-by-user';
 import {
   FetchHotProductsDto,
   FetchProductsDto,
-} from "../dtos/fetch-products.dto";
-import { Product } from "../schemas/product.schema";
-import { ProductService } from "../services/product.service";
-import { RatingService } from "../services/rating.service";
-import { OrderService } from "./../../basket/services/order.service";
-import { User } from "./../../user/schemas/user.schema";
-import { CategoriesService } from "./../services/categories.service";
+} from '../dtos/fetch-products.dto';
+import { Product } from '../schemas/product.schema';
+import { ProductService } from '../services/product.service';
+import { RatingService } from '../services/rating.service';
+import { OrderService } from './../../basket/services/order.service';
+import { User } from './../../user/schemas/user.schema';
+import { CategoriesService } from './../services/categories.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth("accessToken")
-@Controller("product")
+@ApiBearerAuth('accessToken')
+@Controller('product')
 export class ProductController {
   constructor(
     private productService: ProductService,
@@ -52,24 +53,25 @@ export class ProductController {
     private categoriesService: CategoriesService,
 
     @InjectModel(Product.name) private productModel: Model<Product>,
-    @InjectModel(Categories.name) private CategoriesModel: Model<Categories>
+    @InjectModel(Categories.name) private CategoriesModel: Model<Categories>,
   ) {}
 
   @ApiOperation({
-    summary: "Get tất cả sản phẩm",
+    summary: 'Get tất cả sản phẩm',
   })
   @AuthNotRequired()
-  @ApiTags("Public Product")
-  @Get("")
+  @ApiTags('Public Product')
+  @Get('')
   async getProductsWithFilter(
-    @Query() query: FetchProductsDto
+    @Query() query: FetchProductsDto,
   ): Promise<ResponsePaginationDto<Product>> {
     const categories = await this.categoriesService.getCategoriesBySlug(
-      query.categories
+      query.categories,
     );
+
     const filter: FilterQuery<Product> = {
-      name: { $regex: `${query.name}`, $options: "i" },
-      categories: { $in: getFieldIds(categories) },
+      name: { $regex: `${query.name}`, $options: 'i' },
+      categories: categories ? categories._id : null,
       createdAt: { $lte: query.before },
       deletedAt: null,
     };
@@ -82,7 +84,7 @@ export class ProductController {
       query.limit,
       query.page,
       query.getSkip(),
-      filter
+      filter,
     );
 
     const [orders, ratings] = await Promise.all([
@@ -95,26 +97,27 @@ export class ProductController {
       result: await this.productService.filterProductsAndSort(
         products.result,
         ratings,
-        query.sort
+        query.sort,
       ),
     };
   }
 
   @ApiOperation({
-    summary: "Get thông tin sản phẩm Hot (Lưu ý: Số lượng bán)",
+    summary: 'Get thông tin sản phẩm Hot (Lưu ý: Số lượng bán)',
   })
   @AuthNotRequired()
-  @ApiTags("Public Product")
-  @Get("hot")
+  @ApiTags('Public Product')
+  @Get('hot')
   async getProductsByHot(
-    @Query() query: FetchHotProductsDto
+    @Query() query: FetchHotProductsDto,
   ): Promise<ResponsePaginationDto<Product>> {
     const categories = await this.categoriesService.getCategoriesBySlug(
-      query.categories
+      query.categories,
     );
+
     const filter: FilterQuery<Product> = {
-      name: { $regex: `${query.name}`, $options: "i" },
-      categories: { $in: getFieldIds(categories) },
+      name: { $regex: `${query.name}`, $options: 'i' },
+      categories: categories ? categories._id : null,
       createdAt: { $lte: query.before },
       deletedAt: null,
     };
@@ -123,24 +126,24 @@ export class ProductController {
     if (!query.before) delete filter.createdAt;
     if (!query.categories) delete filter.categories;
 
-    const START_OF_MONTH = moment().startOf("month").format("YYYY-MM-DD hh:mm");
-    const END_OF_MONTH = moment().endOf("month").format("YYYY-MM-DD hh:mm");
+    const START_OF_MONTH = moment().startOf('month').format('YYYY-MM-DD hh:mm');
+    const END_OF_MONTH = moment().endOf('month').format('YYYY-MM-DD hh:mm');
     const orders = await this.orderService.getOrdersByDate(
       START_OF_MONTH,
-      END_OF_MONTH
+      END_OF_MONTH,
     );
     filter._id = {
-      $in: getFieldIds(orders, "product"),
+      $in: getFieldIds(orders, 'product'),
     };
 
     const products = await this.productService.getProductsByFilter(
       query.limit,
       query.page,
       query.getSkip(),
-      filter
+      filter,
     );
     const ratings = await this.ratingService.getRatingByProductsId(
-      getFieldIds(products.result)
+      getFieldIds(products.result),
     );
 
     return {
@@ -148,22 +151,22 @@ export class ProductController {
       result: await this.productService.filterProductsAndSort(
         products.result,
         ratings,
-        query.sort
+        query.sort,
       ),
     };
   }
 
   @ApiOperation({
-    summary: "Get chi tiết thông tin sản phẩm",
+    summary: 'Get chi tiết thông tin sản phẩm',
   })
   @AuthNotRequired()
-  @ApiTags("Public Product")
-  @Get("detail")
-  async getDetailProduct(@Query("slug") slug: string) {
+  @ApiTags('Public Product')
+  @Get('detail')
+  async getDetailProduct(@Query('slug') slug: string) {
     const product = await this.productModel
       .findOne({ slug: slug, deletedAt: null })
-      .populate("creator", blockFieldUser)
-      .populate("categories");
+      .populate('creator', blockFieldUser)
+      .populate('categories');
 
     const [ratings] = await Promise.all([
       this.ratingService.getRatingByProduct(product),
@@ -203,15 +206,15 @@ export class ProductController {
     isArray: true,
   })
   @ApiOperation({
-    summary: "Post tạo sản phẩm",
+    summary: 'Post tạo sản phẩm',
   })
   // @AuthNotRequired()
   @Post()
-  @ApiTags("Private Product")
+  @ApiTags('Private Product')
   createProduct(@CurrentUser() user: User, @Body() body: CreateProductDto[]) {
     if (!isArray(body)) {
       throw new BadRequestException(
-        "Invalid payload, payload phải là có type là array"
+        'Invalid payload, payload phải là có type là array',
       );
     }
 
@@ -230,40 +233,40 @@ export class ProductController {
       if (!mongoose.isValidObjectId(item.categories))
         error.push({
           index: position,
-          message: "Categories phải là 1 ObjectID",
+          message: 'Categories phải là 1 ObjectID',
         });
 
       if (!mongoose.isValidObjectId(item.creator))
         error.push({
           index: position,
-          message: "Creator phải là 1 ObjectID",
+          message: 'Creator phải là 1 ObjectID',
         });
 
       if (item.price < 1000)
         error.push({
           index: position,
-          message: "Giá sản phẩm không thể nhỏ hơn 1000 VND",
+          message: 'Giá sản phẩm không thể nhỏ hơn 1000 VND',
         });
 
       if (item.quantity <= 0)
         error.push({
           index: position,
-          message: "Số lượng sản phẩm không thể < 0",
+          message: 'Số lượng sản phẩm không thể < 0',
         });
 
       if (item.pictures.length <= 0) {
         error.push({
           index: position,
-          message: "Sản phẩm phải có ảnh",
+          message: 'Sản phẩm phải có ảnh',
         });
       }
     });
 
     if (error.length > 0) {
       throw new BadRequestException({
-        code: "CREATE_PRODUCT_501",
-        message: "Thông tin gửi lên không chính xác",
-        data: orderBy(error, "index", "asc"),
+        code: 'CREATE_PRODUCT_501',
+        message: 'Thông tin gửi lên không chính xác',
+        data: orderBy(error, 'index', 'asc'),
       });
     }
 
@@ -272,44 +275,44 @@ export class ProductController {
 
   @Roles(ENUM_ROLE_TYPE.SELLER)
   @ApiOperation({
-    summary: "Put sửa sản phẩm",
+    summary: 'Put sửa sản phẩm',
   })
   @Put()
-  @ApiTags("Private Product")
+  @ApiTags('Private Product')
   updateProduct(
-    @Query("id", new ParseObjectIdPipe()) id: string,
-    @Body() body: CreateProductDto
+    @Query('id', new ParseObjectIdPipe()) id: string,
+    @Body() body: CreateProductDto,
   ) {
     return this.productModel.findByIdAndUpdate({ _id: id }, body);
   }
 
   @Roles(ENUM_ROLE_TYPE.SELLER)
   @ApiOperation({
-    summary: "Delete sửa sản phẩm",
+    summary: 'Delete sửa sản phẩm',
   })
   @Delete()
-  @ApiTags("Private Product")
-  deleteProduct(@Query("id", new ParseObjectIdPipe()) id: string) {
+  @ApiTags('Private Product')
+  deleteProduct(@Query('id', new ParseObjectIdPipe()) id: string) {
     return this.productModel.findByIdAndUpdate(
       { _id: id },
-      { deletedAt: new Date() }
+      { deletedAt: new Date() },
     );
   }
 
   @ApiOperation({
-    summary: "Get tất cả sảm phẩm của (người bán)",
+    summary: 'Get tất cả sảm phẩm của (người bán)',
   })
-  @ApiTags("Private Product")
+  @ApiTags('Private Product')
   @Roles(ENUM_ROLE_TYPE.SELLER)
   // @AuthNotRequired()
-  @Get("products-by-user")
+  @Get('products-by-user')
   async getProductsByUser(
     @CurrentUser() user: User,
-    @Query() query: FetchProductsByUser
+    @Query() query: FetchProductsByUser,
   ): Promise<ResponsePaginationDto<Product>> {
     const filter: FilterQuery<Product> = {
       creator: user._id,
-      name: RegExp(query.name || "", "i"),
+      name: RegExp(query.name || '', 'i'),
       categories: new Types.ObjectId(query.categoriesID),
       deletedAt: null,
     };
@@ -318,10 +321,10 @@ export class ProductController {
     if (!query.categoriesID) delete filter.categories;
 
     console.log(filter);
-    
+
     const products = await this.productModel
       .find(filter)
-      .sort({ createdAt: query.timeSort === "ASC" ? "asc" : "desc" })
+      .sort({ createdAt: query.timeSort === 'ASC' ? 'asc' : 'desc' })
       .limit(query.limit)
       .skip(query.getSkip());
 
@@ -335,20 +338,20 @@ export class ProductController {
     };
   }
 
-  @ApiTags("Private Product")
+  @ApiTags('Private Product')
   @Roles(ENUM_ROLE_TYPE.SELLER)
   @ApiOperation({
-    summary: "Get tất cả sản phẩm đã hủy",
+    summary: 'Get tất cả sản phẩm đã hủy',
   })
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  @Get("products-cancel")
+  @Get('products-cancel')
   async getProductsCancel(
     @CurrentUser() user: User,
-    @Query() query: FetchProductsByUser
+    @Query() query: FetchProductsByUser,
   ): Promise<ResponsePaginationDto<Product>> {
     const filter: FilterQuery<Product> = {
       creator: user._id,
-      name: RegExp(query.name, "i"),
+      name: RegExp(query.name, 'i'),
       deletedAt: { $ne: null },
     };
 
@@ -356,7 +359,7 @@ export class ProductController {
 
     const products = await this.productModel
       .find(filter)
-      .sort({ createdAt: query.timeSort === "ASC" ? "asc" : "desc" })
+      .sort({ createdAt: query.timeSort === 'ASC' ? 'asc' : 'desc' })
       .limit(query.limit)
       .skip(query.getSkip());
 

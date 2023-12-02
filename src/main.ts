@@ -12,12 +12,17 @@ import * as ngrok from '@ngrok/ngrok';
 import { LoggingInterceptor } from './shared/interception/logging.interceptor';
 import { Logging } from './shared/providers/logging/logging';
 
-export const urlPublic = path.resolve(__dirname, "..", "src");
+export const urlPublic = path.resolve(__dirname, '..', 'src');
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const logging = new Logging();
+
+  app.enableCors({
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // enable passing cookies, authentication headers, etc.
+  });
 
   app.use(cookieParser());
   app.useGlobalInterceptors(
@@ -51,14 +56,14 @@ async function bootstrap() {
     logging.debug(`Server đang chạy trên PORT ${PORT}`);
   });
 
-  ngrok
-    .connect({
-      addr: PORT,
-      authtoken: '2Yn1Zdp2gr0iRt0yzJXsQ9x07mo_3sSVhhfQXsCbQJGatjNrw',
-      domain: 'mint-flexible-tortoise.ngrok-free.app',
-    })
-    .then((listener) =>
-      logging.debug(`Ingress established at: ${listener.url()}`),
-    );
+  // ngrok
+  //   .connect({
+  //     addr: PORT,
+  //     authtoken: '2Yz5TUsLIdBvscaUoxBcbpOTik7_6BeC3ArNwUnuRXZ4NBHSd',
+  //     domain: 'ultimate-implicitly-hound.ngrok-free.app',
+  //   })
+  //   .then((listener) =>
+  //     logging.debug(`Ingress established at: ${listener.url()}`),
+  //   );
 }
 bootstrap();

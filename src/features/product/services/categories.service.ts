@@ -37,7 +37,7 @@ export class CategoriesService {
     return [...categoriesMap.values()];
   }
   getCategoriesBySlug(slug: string) {
-    return this.categoriesModel.find({ slug: slug });
+    return this.categoriesModel.findOne({ slug: slug });
   }
 
   getPopulateCategories(orders: Order[], categories: Categories[]) {
