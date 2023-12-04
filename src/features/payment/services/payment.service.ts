@@ -41,4 +41,14 @@ export class PaymentService {
       ],
     };
   }
+
+  public sortObject(obj: any) {
+    const sortedObject = {};
+    Object.keys(obj)
+      .sort()
+      .forEach((key) => {
+        sortedObject[key] = obj[key];
+      });
+    return sortedObject;
+  }
 }
