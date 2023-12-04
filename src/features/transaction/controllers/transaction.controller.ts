@@ -137,8 +137,11 @@ export class TransactionController {
       throw new NotFoundException(
         `Không tìm thấy ${user_receiver ? 'Người nhận' : 'Người gửi'}`,
       );
-    if (body.amount < 1000)
-      throw new BadRequestException('Số tiền giao dịch không thể nhỏ hơn 1000');
+
+    if (body.amount < 10000)
+      throw new BadRequestException(
+        'Số tiền giao dịch không thể nhỏ hơn 10.000',
+      );
 
     const payload: Partial<Transaction> = {
       receiver: user_receiver._id,
@@ -171,65 +174,114 @@ export class TransactionController {
     };
   }
 
-  @ApiOperation({
-    summary: 'Tạo giao dịch nạp tiền or rút tiền',
-  })
   @ApiTags('Private Transaction')
   @Roles(...getAllRoles())
-  @Post('')
-  async createTransaction(
+  @Post('recharge')
+  async createRecharge(
     @CurrentUser() user: User,
-    @Query() query: CreateTransactionDto,
+    @Query('amount') amount: number,
+    @Query('accountNumber') accountNumber: string,
   ) {
-    const { transaction_type, amount, accountNumber } = query;
-    const payload: Partial<Transaction> = {
-      receiver: user._id,
-      depositor: new Types.ObjectId(
-        '655dc01ef63e8362106b22d7',
-      ) as unknown as User, // ID Of ADMIN
-      description: transaction_type,
+    const administrator = await this.UserModel.findById(
+      '6544c8129d85a36c1ddbc67f',
+    );
+
+    if (!administrator)
+      throw new NotFoundException('Không tìm thấy tài khoản #Administrator');
+
+    const payloadCustomer: Partial<Transaction> = {
+      receiver: administrator._id,
+      depositor: user._id,
+      description: ENUM_TRANSACTION_TYPE.RECHARGE,
+      status: ENUM_TRANSACTION_STATUS.SUCCEED,
       amount: amount,
       accountNumber: accountNumber,
-      status: ENUM_TRANSACTION_STATUS.PEENING,
     };
 
-    if (transaction_type === ENUM_TRANSACTION_TYPE.RECHARGE) {
-      payload.receiver = new Types.ObjectId(
-        '655dc01ef63e8362106b22d7',
-      ) as unknown as User; // ID of ADMIN,
-      payload.depositor = user._id;
-      user.balance += amount;
-    }
+    const isSuccessCreated = await this.TransactionModel.create(
+      payloadCustomer,
+    );
+
+    if (!isSuccessCreated)
+      throw new BadRequestException('Lỗi khi tạo giao dịch');
+
+    administrator.balance += amount;
+    user.balance -= amount;
+
+    const [administratorSucceed, userSucceed] = await Promise.all([
+      administrator.save(),
+      user.save(),
+    ]);
+
+    return {
+      administrator: administratorSucceed,
+      user: userSucceed,
+      transaction: isSuccessCreated,
+    };
+  }
+
+  @ApiTags('Private Transaction')
+  @Roles(...getAllRoles())
+  @Post('withdrawal')
+  async createWithdrawal(
+    @CurrentUser() user: User,
+    @Query('amount') amount: number,
+  ) {
+    const administrator = await this.UserModel.findById(
+      '6544c8129d85a36c1ddbc67f',
+    );
+
+    if (!administrator)
+      throw new NotFoundException('Không tìm thấy tài khoản #Administrator');
+
+    if (user.bank)
+      throw new BadRequestException(
+        'Bạn phải cập nhập tài khoản ngân hàng để rút tiền',
+      );
+
+    const payload: Partial<Transaction> = {
+      receiver: user._id,
+      depositor: administrator._id,
+      description: ENUM_TRANSACTION_TYPE.WITHDRAWAL,
+      status: ENUM_TRANSACTION_STATUS.PEENING,
+      amount: amount,
+      accountNumber: user.bank,
+    };
 
     const isSuccessCreated = await this.TransactionModel.create(payload);
 
-    if (
-      transaction_type === ENUM_TRANSACTION_TYPE.RECHARGE &&
-      isSuccessCreated
-    ) {
-      isSuccessCreated.status = ENUM_TRANSACTION_STATUS.SUCCEED;
-    }
+    if (!isSuccessCreated)
+      throw new BadRequestException('Lỗi khi tạo giao dịch');
+
+    user.balance -= amount;
+
+    const [administratorSucceed, userSucceed] = await Promise.all([
+      administrator.save(),
+      user.save(),
+    ]);
 
     return {
-      transaction: await isSuccessCreated.save(),
-      user: await user.save(),
+      administrator: administratorSucceed,
+      user: userSucceed,
+      transaction: isSuccessCreated,
     };
   }
 
   @ApiTags('Private Transaction')
   @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
   @Patch('withdrawal')
-  // @ApiConsumes('multipart/form-data')
-  // @UseInterceptors(FileInterceptor('image'))
   async updateStatusWithdrawalTransaction(
     @Query('transactionID', new ParseObjectIdPipe()) id: string,
     @Query('receiverID', new ParseObjectIdPipe()) user: string,
-    // @UploadedFile() image: Express.Multer.File,
   ) {
-    const [transaction, receiver] = await Promise.all([
+    const [transaction, receiver, administrator] = await Promise.all([
       this.TransactionModel.findById(id),
       this.UserModel.findById(user),
+      this.UserModel.findById('6544c8129d85a36c1ddbc67f'),
     ]);
+
+    if (transaction.description !== ENUM_TRANSACTION_TYPE.WITHDRAWAL)
+      throw new NotFoundException(`API này chỉ dành cho rút tiền`);
 
     if (!transaction)
       throw new NotFoundException(`Không tìm thấy #transaction: ${id}`);
@@ -237,50 +289,25 @@ export class TransactionController {
     if (!receiver)
       throw new NotFoundException(`Không tìm thấy #receiver: ${user}`);
 
-    if (transaction.description !== ENUM_TRANSACTION_TYPE.WITHDRAWAL)
-      throw new NotFoundException(`API này chỉ dành cho rút tiền`);
+    if (!administrator)
+      throw new NotFoundException(
+        `Không tìm thấy tài khoản #Administrator: ${administrator}`,
+      );
 
     transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
-    receiver.balance -= transaction.amount;
+    administrator.balance -= transaction.amount;
 
-    // const nameImage = `receiverID:${user}#transactionID:${id}#Date:${moment().format(
-    //   'yyyy-mm-dd',
-    // )}#fileName:${image.originalname}`;
-
-    // const PATH = `${pathUpload}/${nameImage}`;
-
-    // fs.writeFileSync(PATH, image.buffer);
-
-    // console.log(
-    //   join(
-    //     urlPublic,
-    //     `assets/uploads/receiverID:6544c8129d85a36c1ddbc67f#transactionID:6569c491c1709e9661d829d6#Date:2023-00-Sa#fileName:316211150_1296404117881454_3040842759036012076_n.jpg`,
-    //   ),
-    // );
-
-    // const sendMail = await this.mailerService.sendMail({
-    //   to: receiver.email,
-    //   subject: 'Trình xác thực (2FA)',
-    //   attachments: [
-    //     {
-    //       name: 'file.ipg',
-    //       path: join(
-    //         urlPublic,
-    //         `assets/uploads/receiverID:6544c8129d85a36c1ddbc67f#transactionID:6569c491c1709e9661d829d6#Date:2023-00-Sa#fileName:316211150_1296404117881454_3040842759036012076_n.jpg`,
-    //       ),
-    //     },
-    //   ],
-    // });
-
-    const [transactionSucceed, receiverSucceed] = await Promise.all([
-      transaction.save(),
-      receiver.save(),
-    ]);
+    const [transactionSucceed, receiverSucceed, administratorSucceed] =
+      await Promise.all([
+        transaction.save(),
+        receiver.save(),
+        administrator.save(),
+      ]);
 
     return {
       transaction: transactionSucceed,
       receiver: receiverSucceed,
-      // sendMail: sendMail ? 'Success' : 'Failed',
+      administrator: administratorSucceed,
     };
   }
 }

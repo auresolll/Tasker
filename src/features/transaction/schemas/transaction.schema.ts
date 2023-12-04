@@ -35,9 +35,6 @@ export class Transaction extends Document {
 
   @Prop({ enum: ENUM_TRANSACTION_STATUS, required: true })
   status: ENUM_TRANSACTION_STATUS;
-
-  @Prop({ type: Date, default: null })
-  deletedAt: Date;
 }
 
 export const TransactionSchema = createSchemaForClassWithMethods(Transaction);
