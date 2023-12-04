@@ -219,12 +219,12 @@ export class TransactionController {
   @ApiTags('Private Transaction')
   @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
   @Patch('withdrawal')
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('image'))
+  // @ApiConsumes('multipart/form-data')
+  // @UseInterceptors(FileInterceptor('image'))
   async updateStatusWithdrawalTransaction(
     @Query('transactionID', new ParseObjectIdPipe()) id: string,
     @Query('receiverID', new ParseObjectIdPipe()) user: string,
-    @UploadedFile() image: Express.Multer.File,
+    // @UploadedFile() image: Express.Multer.File,
   ) {
     const [transaction, receiver] = await Promise.all([
       this.TransactionModel.findById(id),
@@ -243,34 +243,34 @@ export class TransactionController {
     transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
     receiver.balance -= transaction.amount;
 
-    const nameImage = `receiverID:${user}#transactionID:${id}#Date:${moment().format(
-      'yyyy-mm-dd',
-    )}#fileName:${image.originalname}`;
+    // const nameImage = `receiverID:${user}#transactionID:${id}#Date:${moment().format(
+    //   'yyyy-mm-dd',
+    // )}#fileName:${image.originalname}`;
 
-    const PATH = `${pathUpload}/${nameImage}`;
+    // const PATH = `${pathUpload}/${nameImage}`;
 
-    fs.writeFileSync(PATH, image.buffer);
+    // fs.writeFileSync(PATH, image.buffer);
 
-    console.log(
-      join(
-        urlPublic,
-        `assets/uploads/receiverID:6544c8129d85a36c1ddbc67f#transactionID:6569c491c1709e9661d829d6#Date:2023-00-Sa#fileName:316211150_1296404117881454_3040842759036012076_n.jpg`,
-      ),
-    );
+    // console.log(
+    //   join(
+    //     urlPublic,
+    //     `assets/uploads/receiverID:6544c8129d85a36c1ddbc67f#transactionID:6569c491c1709e9661d829d6#Date:2023-00-Sa#fileName:316211150_1296404117881454_3040842759036012076_n.jpg`,
+    //   ),
+    // );
 
-    const sendMail = await this.mailerService.sendMail({
-      to: receiver.email,
-      subject: 'Trình xác thực (2FA)',
-      attachments: [
-        {
-          name: 'file.ipg',
-          path: join(
-            urlPublic,
-            `assets/uploads/receiverID:6544c8129d85a36c1ddbc67f#transactionID:6569c491c1709e9661d829d6#Date:2023-00-Sa#fileName:316211150_1296404117881454_3040842759036012076_n.jpg`,
-          ),
-        },
-      ],
-    });
+    // const sendMail = await this.mailerService.sendMail({
+    //   to: receiver.email,
+    //   subject: 'Trình xác thực (2FA)',
+    //   attachments: [
+    //     {
+    //       name: 'file.ipg',
+    //       path: join(
+    //         urlPublic,
+    //         `assets/uploads/receiverID:6544c8129d85a36c1ddbc67f#transactionID:6569c491c1709e9661d829d6#Date:2023-00-Sa#fileName:316211150_1296404117881454_3040842759036012076_n.jpg`,
+    //       ),
+    //     },
+    //   ],
+    // });
 
     const [transactionSucceed, receiverSucceed] = await Promise.all([
       transaction.save(),
@@ -280,7 +280,7 @@ export class TransactionController {
     return {
       transaction: transactionSucceed,
       receiver: receiverSucceed,
-      sendMail: sendMail ? 'Success' : 'Failed',
+      // sendMail: sendMail ? 'Success' : 'Failed',
     };
   }
 }
