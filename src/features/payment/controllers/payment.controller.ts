@@ -8,50 +8,34 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiBearerAuth,
-  ApiConsumes,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
-import { FilterQuery, Model, Types } from 'mongoose';
-import { join } from 'path';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FilterQuery, Model } from 'mongoose';
 import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
 import { User } from 'src/features/user/schemas/user.schema';
 import { RecoverService } from 'src/features/user/services/recover.service';
-import { urlPublic } from 'src/main';
 import { ENUM_ROLE_TYPE, getAllRoles } from 'src/shared/constants/role';
 import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
 import { Roles } from 'src/shared/utils/roles.decorator';
 import { RolesGuard } from 'src/shared/utils/roles.guard';
-import {
-  CreateTransactionDto,
-  CreateTransactionTransferMoneyDto,
-} from '../dtos/create-transaction';
+import { CreateTransactionTransferMoneyDto } from '../dtos/create-transaction';
 import { FetchTransaction } from '../dtos/fetch-transaction';
 import {
   ENUM_TRANSACTION_STATUS,
   ENUM_TRANSACTION_TYPE,
   Transaction,
 } from '../schemas/transaction.schema';
-import { TransactionService } from '../services/transaction.service';
-import { pathUpload } from 'src/shared/utils/file-upload.utils';
-import * as moment from 'moment';
-import * as fs from 'fs';
+import { PaymentService } from '../services/payment.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
-@Controller('transaction')
-export class TransactionController {
+@Controller('Payment')
+export class PaymentController {
   constructor(
-    private readonly transactionService: TransactionService,
+    private readonly paymentService: PaymentService,
     private readonly recoverService: RecoverService,
     private readonly mailerService: MailerService,
 
@@ -70,13 +54,13 @@ export class TransactionController {
     @Query() query: FetchTransaction,
   ) {
     const filter: FilterQuery<Transaction> = {
-      ...this.transactionService.getDirectTransactionMySelfFilter(user),
+      ...this.paymentService.getDirectTransactionMySelfFilter(user),
       description: query.type,
     };
 
     if (!query.type) delete filter.description;
 
-    const [transactions, count] = await this.transactionService.getTransactions(
+    const [transactions, count] = await this.paymentService.getTransactions(
       filter,
       query.limit,
       query.getSkip(),
@@ -104,7 +88,7 @@ export class TransactionController {
 
     if (!query.type) delete filter.description;
 
-    const [transactions, count] = await this.transactionService.getTransactions(
+    const [transactions, count] = await this.paymentService.getTransactions(
       filter,
       query.limit,
       query.getSkip(),
@@ -124,8 +108,9 @@ export class TransactionController {
   })
   @ApiTags('Private Transaction')
   @Roles(...getAllRoles())
-  @Post('transfer-money')
+  @Post('transfer-system')
   async createTransactionTransferMoney(
+    @CurrentUser() user: User,
     @Body() body: CreateTransactionTransferMoneyDto,
   ) {
     const [user_receiver, user_depositor] = await Promise.all([
@@ -140,8 +125,11 @@ export class TransactionController {
 
     if (body.amount < 10000)
       throw new BadRequestException(
-        'Số tiền giao dịch không thể nhỏ hơn 10.000',
+        'Số tiền giao dịch không thể nhỏ hơn 10.000 VND',
       );
+
+    if (user.balance - body.amount <= 0)
+      throw new BadRequestException('Số tiền trong tài khoản không đủ');
 
     const payload: Partial<Transaction> = {
       receiver: user_receiver._id,
@@ -149,7 +137,7 @@ export class TransactionController {
       amount: body.amount,
       description: ENUM_TRANSACTION_TYPE.TRANSFER_MONEY,
       status: ENUM_TRANSACTION_STATUS.PEENING,
-      accountNumber: body.accountNumber,
+      accountBank: 'system',
     };
 
     const isSuccessCreated = await this.TransactionModel.create(payload);
@@ -161,16 +149,19 @@ export class TransactionController {
     user_depositor.balance -= body.amount;
 
     isSuccessCreated.status = ENUM_TRANSACTION_STATUS.SUCCEED;
-    const [isSucceed, receiver, depositor] = await Promise.all([
-      isSuccessCreated.save(),
-      user_receiver.save(),
-      user_depositor.save(),
-    ]);
+
+    const [isTransactionSucceed, receiverSucceed, depositorSucceed] =
+      await Promise.all([
+        isSuccessCreated.save(),
+        user_receiver.save(),
+        user_depositor.save(),
+      ]);
 
     return {
-      isSucceed,
-      receiver,
-      depositor,
+      transaction: isTransactionSucceed,
+      receiver: receiverSucceed,
+      depositor: depositorSucceed,
+      message: 'Chuyển tiền thành công',
     };
   }
 
@@ -180,7 +171,7 @@ export class TransactionController {
   async createRecharge(
     @CurrentUser() user: User,
     @Query('amount') amount: number,
-    @Query('accountNumber') accountNumber: string,
+    @Query('accountBank') accountBank: string,
   ) {
     const administrator = await this.UserModel.findById(
       '6544c8129d85a36c1ddbc67f',
@@ -195,7 +186,7 @@ export class TransactionController {
       description: ENUM_TRANSACTION_TYPE.RECHARGE,
       status: ENUM_TRANSACTION_STATUS.SUCCEED,
       amount: amount,
-      accountNumber: accountNumber,
+      accountBank: accountBank,
     };
 
     const isSuccessCreated = await this.TransactionModel.create(
@@ -217,6 +208,7 @@ export class TransactionController {
       administrator: administratorSucceed,
       user: userSucceed,
       transaction: isSuccessCreated,
+      message: 'Nạp tiền thành công',
     };
   }
 
@@ -239,13 +231,16 @@ export class TransactionController {
         'Bạn phải cập nhập tài khoản ngân hàng để rút tiền',
       );
 
+    if (user.balance - amount <= 0)
+      throw new BadRequestException('Số tiền trong tài khoản không đủ');
+
     const payload: Partial<Transaction> = {
       receiver: user._id,
       depositor: administrator._id,
       description: ENUM_TRANSACTION_TYPE.WITHDRAWAL,
       status: ENUM_TRANSACTION_STATUS.PEENING,
       amount: amount,
-      accountNumber: user.bank,
+      accountBank: user.bank,
     };
 
     const isSuccessCreated = await this.TransactionModel.create(payload);
@@ -264,6 +259,7 @@ export class TransactionController {
       administrator: administratorSucceed,
       user: userSucceed,
       transaction: isSuccessCreated,
+      message: 'Rút tiền thành công, đang chờ xử lý',
     };
   }
 
@@ -308,6 +304,7 @@ export class TransactionController {
       transaction: transactionSucceed,
       receiver: receiverSucceed,
       administrator: administratorSucceed,
+      message: 'Rút tiền thành công',
     };
   }
 }

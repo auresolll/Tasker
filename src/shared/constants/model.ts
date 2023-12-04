@@ -1,41 +1,50 @@
 import {
   Comment,
   CommentSchema,
-} from "./../../features/product/schemas/comment.schema";
-import { MongooseModule } from "@nestjs/mongoose";
-import { Subscription } from "rxjs";
-import { Order, OrderSchema } from "src/features/basket/schemas/order.schema";
-import { Media, MediaSchema } from "src/features/messages/schemas/media.schema";
+} from './../../features/product/schemas/comment.schema';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Subscription } from 'rxjs';
+import { Order, OrderSchema } from 'src/features/basket/schemas/order.schema';
+import { Media, MediaSchema } from 'src/features/messages/schemas/media.schema';
 import {
   Message,
   MessageSchema,
-} from "src/features/messages/schemas/messages.schema";
+} from 'src/features/messages/schemas/messages.schema';
+import {
+  Transaction,
+  TransactionSchema,
+} from 'src/features/payment/schemas/transaction.schema';
 import {
   Categories,
   CategoriesSchema,
-} from "src/features/product/schemas/categories.schema";
+} from 'src/features/product/schemas/categories.schema';
 import {
   Product,
   ProductSchema,
-} from "src/features/product/schemas/product.schema";
-import { Promotion, PromotionSchema } from "src/features/product/schemas/promotions.schema";
+} from 'src/features/product/schemas/product.schema';
+import {
+  Promotion,
+  PromotionSchema,
+} from 'src/features/product/schemas/promotions.schema';
 import {
   Rating,
   RatingSchema,
-} from "src/features/product/schemas/rating.schema";
-import { Voucher, VoucherSchema } from "src/features/product/schemas/voucher.schema";
-import { Transaction, TransactionSchema } from "src/features/transaction/schemas/transaction.schema";
-import { Follow, FollowSchema } from "src/features/user/schemas/follow.schema";
+} from 'src/features/product/schemas/rating.schema';
+import {
+  Voucher,
+  VoucherSchema,
+} from 'src/features/product/schemas/voucher.schema';
+import { Follow, FollowSchema } from 'src/features/user/schemas/follow.schema';
 import {
   Recover,
   RecoverSchema,
-} from "src/features/user/schemas/recover.schema";
+} from 'src/features/user/schemas/recover.schema';
 import {
   SocketConnection,
   SocketConnectionSchema,
-} from "src/features/user/schemas/socket-connection.schema";
-import { SubscriptionSchema } from "src/features/user/schemas/subscription.schema";
-import { User, UserSchema } from "src/features/user/schemas/user.schema";
+} from 'src/features/user/schemas/socket-connection.schema';
+import { SubscriptionSchema } from 'src/features/user/schemas/subscription.schema';
+import { User, UserSchema } from 'src/features/user/schemas/user.schema';
 
 export const Models = MongooseModule.forFeature([
   {

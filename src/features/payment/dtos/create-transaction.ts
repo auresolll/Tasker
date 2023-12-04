@@ -15,10 +15,6 @@ export class CreateTransactionTransferMoneyDto {
   @ApiProperty()
   @IsNumber()
   amount: number;
-
-  @ApiProperty()
-  @IsString()
-  accountNumber: string;
 }
 
 export class CreateTransactionDto {

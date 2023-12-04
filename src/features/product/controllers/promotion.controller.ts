@@ -7,47 +7,46 @@ import {
   Post,
   Query,
   UseGuards,
-} from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { FilterQuery, Model, Types } from "mongoose";
-import { CurrentUser } from "src/features/auth/decorators/current-user.decorator";
-import { JwtAuthGuard } from "src/features/auth/guard/jwt-auth.guard";
-import { Transaction } from "src/features/transaction/schemas/transaction.schema";
-import { User } from "src/features/user/schemas/user.schema";
-import { PaginationDto } from "src/shared/constants/pagination";
-import { ENUM_ROLE_TYPE, getAllRoles } from "src/shared/constants/role";
-import { ParseObjectIdPipe } from "src/shared/pipe/parse-object-id.pipe";
-import { randomString } from "src/shared/utils/random-string";
-import { Roles } from "src/shared/utils/roles.decorator";
-import { RolesGuard } from "src/shared/utils/roles.guard";
-import { CreatePromotionDto } from "../dtos/create-promotion.dto";
-import { Product } from "../schemas/product.schema";
-import { Promotion } from "../schemas/promotions.schema";
-import { ENUM_VOUCHER_TYPE, Voucher } from "../schemas/voucher.schema";
-import { PromotionService } from "./../services/promotion.service";
-import { getFieldIds } from "src/shared/utils/get-ids";
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FilterQuery, Model, Types } from 'mongoose';
+import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
+import { User } from 'src/features/user/schemas/user.schema';
+import { PaginationDto } from 'src/shared/constants/pagination';
+import { ENUM_ROLE_TYPE, getAllRoles } from 'src/shared/constants/role';
+import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
+import { randomString } from 'src/shared/utils/random-string';
+import { Roles } from 'src/shared/utils/roles.decorator';
+import { RolesGuard } from 'src/shared/utils/roles.guard';
+import { CreatePromotionDto } from '../dtos/create-promotion.dto';
+import { Product } from '../schemas/product.schema';
+import { Promotion } from '../schemas/promotions.schema';
+import { ENUM_VOUCHER_TYPE, Voucher } from '../schemas/voucher.schema';
+import { PromotionService } from './../services/promotion.service';
+import { getFieldIds } from 'src/shared/utils/get-ids';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth("accessToken")
-@Controller("promotion")
+@ApiBearerAuth('accessToken')
+@Controller('promotion')
 export class PromotionController {
   constructor(
     private promotionService: PromotionService,
 
     @InjectModel(Product.name) private ProductModel: Model<Product>,
-    @InjectModel(Promotion.name) private PromotionModel: Model<Promotion>
+    @InjectModel(Promotion.name) private PromotionModel: Model<Promotion>,
   ) {}
 
   @ApiOperation({
-    summary: "Get mã khuyến mãi (Người bán)",
+    summary: 'Get mã khuyến mãi (Người bán)',
   })
-  @ApiTags("Private Promotions")
+  @ApiTags('Private Promotions')
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  @Get("")
+  @Get('')
   async getPromotions(
     @CurrentUser() user: User,
-    @Query() query: PaginationDto
+    @Query() query: PaginationDto,
   ) {
     const filter: FilterQuery<Promotion> = {
       user: user._id,
@@ -57,7 +56,7 @@ export class PromotionController {
     const [promotions, count] = await this.promotionService.getPromotions(
       filter,
       query.limit,
-      query.getSkip()
+      query.getSkip(),
     );
 
     return {
@@ -88,14 +87,14 @@ export class PromotionController {
   // }
 
   @ApiOperation({
-    summary: "Tạo mã khuyến mãi (Người bán)",
+    summary: 'Tạo mã khuyến mãi (Người bán)',
   })
-  @ApiTags("Private Promotions")
+  @ApiTags('Private Promotions')
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  @Post("")
+  @Post('')
   async createPromotions(
     @CurrentUser() user: User,
-    @Body() body: CreatePromotionDto
+    @Body() body: CreatePromotionDto,
   ) {
     body.setFieldsBasedOnEnum();
 
@@ -123,11 +122,11 @@ export class PromotionController {
     if (body.voucherID === ENUM_VOUCHER_TYPE.GIFT) {
       const products = await this.ProductModel.find({
         _id: { $in: body.items },
-      }).select("id");
+      }).select('id');
 
       if (body.items.length !== products.length) {
         throw new BadRequestException(
-          "Mã quà tặng khi mua hàng có sản phẩm không được tìm thấy"
+          'Mã quà tặng khi mua hàng có sản phẩm không được tìm thấy',
         );
       }
 
@@ -138,14 +137,14 @@ export class PromotionController {
   }
 
   @ApiOperation({
-    summary: "Delete mã khuyến mãi (Người bán)",
+    summary: 'Delete mã khuyến mãi (Người bán)',
   })
-  @ApiTags("Private Promotions")
+  @ApiTags('Private Promotions')
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  @Delete("")
+  @Delete('')
   async deletePromotion(
     @CurrentUser() user: User,
-    @Query("promotionID", new ParseObjectIdPipe()) id: string
+    @Query('promotionID', new ParseObjectIdPipe()) id: string,
   ) {
     const filter: FilterQuery<Promotion> = {
       user: user._id,

@@ -28,7 +28,7 @@ export class Transaction extends Document {
   amount: number;
 
   @Prop({ type: String, required: true })
-  accountNumber: string;
+  accountBank: string;
 
   @Prop({ enum: ENUM_TRANSACTION_TYPE, required: true })
   description: ENUM_TRANSACTION_TYPE;

@@ -1,25 +1,25 @@
-import { User } from './../../user/schemas/user.schema';
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { FilterQuery, Model } from "mongoose";
-import { blockFieldUser } from "src/shared/constants/blockField";
-import { Transaction } from "../schemas/transaction.schema";
+import { User } from '../../user/schemas/user.schema';
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { FilterQuery, Model } from 'mongoose';
+import { blockFieldUser } from 'src/shared/constants/blockField';
+import { Transaction } from '../schemas/transaction.schema';
 
 @Injectable()
-export class TransactionService {
+export class PaymentService {
   constructor(
-    @InjectModel(Transaction.name) private TransactionModel: Model<Transaction>
+    @InjectModel(Transaction.name) private TransactionModel: Model<Transaction>,
   ) {}
 
   async getTransactions(
     filter: FilterQuery<Transaction>,
     limit: number,
-    skip: number
+    skip: number,
   ) {
     return Promise.all([
       this.TransactionModel.find(filter)
-        .populate("receiver", blockFieldUser)
-        .populate("depositor", blockFieldUser)
+        .populate('receiver', blockFieldUser)
+        .populate('depositor', blockFieldUser)
         .limit(limit)
         .skip(skip)
         .sort({ createdAt: -1 }),
