@@ -206,7 +206,7 @@ export class TransactionController {
       throw new BadRequestException('Lỗi khi tạo giao dịch');
 
     administrator.balance += amount;
-    user.balance -= amount;
+    user.balance += amount;
 
     const [administratorSucceed, userSucceed] = await Promise.all([
       administrator.save(),
