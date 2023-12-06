@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, mongo } from 'mongoose';
 import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
 import { User } from 'src/features/user/schemas/user.schema';
@@ -52,49 +52,52 @@ export class PaymentController {
   @ApiTags('Private Payment')
   @Get('/initiate-payment')
   initiatePayment(@Res() res: any, @Req() req: any): void {
-    let vnpUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-    const returnUrl = 'http://localhost:5555/payment/return';
-    const IP =
+    var vnpUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+    var returnUrl =
+      'https://ultimate-implicitly-hound.ngrok-free.app/payment/return';
+
+    var IP =
       req.headers['x-forwarded-for'] ||
       req.connection.remoteAddress ||
       req.socket.remoteAddress ||
       req.connection.socket.remoteAddress;
 
-    const vnp_HashSecret: string = 'NFDCLZENBIXDCHBWGNCCITSSTUUUSWKF';
+    var secretKey: string = 'NFDCLZENBIXDCHBWGNCCITSSTUUUSWKF';
+
+    let date = new Date();
+    let createDate = moment(date).format('YYYYMMDDHHmmss');
+    let orderID = moment(date).format('DDHHmmss');
     let params: any = {
       vnp_Version: '2.1.0',
-      vnp_IpAddr: '127.0.0.1',
+      vnp_IpAddr: IP,
       vnp_Locale: 'vn',
       vnp_Command: 'pay',
       vnp_TmnCode: 'WWOFAI0K',
       vnp_Amount: 100000 * 100,
       vnp_CurrCode: 'VND',
-      vnp_OrderInfo: 'Thanh toán đơn hàng',
-      vnp_CreateDate: 20231204153855,
+      vnp_OrderType: 'topup',
+      vnp_OrderInfo:
+        'Thanh toán đơn hàng #orderID:' +
+        orderID +
+        ' ' +
+        '#transaction_type:' +
+        ENUM_TRANSACTION_TYPE.WITHDRAWAL,
+      vnp_CreateDate: createDate,
       vnp_ReturnUrl: returnUrl,
-      vnp_TxnRef: random(10000, 99999),
+      vnp_TxnRef: orderID,
     };
 
     params = this.paymentService.sortObject(params);
 
-    let querystring = require('qs');
-    let signData = querystring.stringify(params, { encode: false });
-    let crypto = require('crypto');
-    let hmac = crypto.createHmac('sha512', vnp_HashSecret);
-    let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+    var querystring = require('qs');
+    var signData = querystring.stringify(params, { encode: false });
+    var crypto = require('crypto');
+    var hmac = crypto.createHmac('sha512', secretKey);
+    var signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
     params['vnp_SecureHash'] = signed;
     vnpUrl += '?' + querystring.stringify(params, { encode: false });
 
     res.redirect(vnpUrl);
-  }
-
-  @ApiTags('Private Payment')
-  @AuthNotRequired()
-  @Get('/return')
-  handleReturn(@Req() req: any): any {
-    const queryParams = req.query;
-
-    return { message: 'Thanh toán thành công', queryParams };
   }
 
   @ApiOperation({
