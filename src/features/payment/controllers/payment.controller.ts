@@ -27,7 +27,10 @@ import { Roles } from 'src/shared/utils/roles.decorator';
 import { RolesGuard } from 'src/shared/utils/roles.guard';
 import { CreateTransactionTransferMoneyDto } from '../dtos/create-transaction';
 import { FetchTransaction } from '../dtos/fetch-transaction';
-import { InitiatePaymentDto } from '../dtos/initiate-payment';
+import {
+  InitiatePaymentDto,
+  InitiatePaymentOrderDto,
+} from '../dtos/initiate-payment';
 import {
   ENUM_TRANSACTION_STATUS,
   ENUM_TRANSACTION_TYPE,
@@ -93,7 +96,7 @@ export class PaymentController {
   async orderPayment(
     @Res() res: any,
     @Req() req: any,
-    @Query() query: InitiatePaymentDto,
+    @Query() query: InitiatePaymentOrderDto,
   ): Promise<void> {
     const returnUrl = 'http://localhost:5555/payment/callback';
 

@@ -1,8 +1,10 @@
 import {
+  BadGatewayException,
   Body,
   Controller,
   Get,
   NotFoundException,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -23,8 +25,9 @@ import { RolesGuard } from 'src/shared/utils/roles.guard';
 import { Roles } from '../../../shared/utils/roles.decorator';
 import { CreateOrderDto } from '../dtos/create-order.dto';
 import { FetchOrdersByStatus } from '../dtos/fetch-orders-by-status.dto';
-import { Order } from '../schemas/order.schema';
+import { ENUM_ORDER_STATUS, Order } from '../schemas/order.schema';
 import { Promotion } from 'src/features/product/schemas/promotions.schema';
+import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -90,6 +93,10 @@ export class OrderController {
     const promotion = await this.PromotionModel.findById(body.promotionID);
 
     if (!product) throw new NotFoundException('PRODUCT NOT FOUND');
+
+    if (product.quantity - body.quantity <= 0)
+      throw new BadGatewayException('Số lượng không đủ để order');
+
     const originalPrice = body.orderPrice * body.quantity;
     const payload: Partial<Order> = {
       ...body,
@@ -109,6 +116,21 @@ export class OrderController {
         return response;
       });
     return created;
+  }
+
+  @ApiOperation({
+    summary: 'Cập nhật trạng thái đơn hàng',
+  })
+  @ApiTags('Private Order')
+  @Roles(ENUM_ROLE_TYPE.CUSTOMER)
+  @Patch('')
+  async updateStatusOrder(
+    @CurrentUser() user: User,
+    @Query('orderID', new ParseObjectIdPipe()) id: string,
+  ) {
+    const order = await this.orderModel.findById({ _id: id, user: user._id });
+    order.status = ENUM_ORDER_STATUS.SUCCESSFULLY;
+    return order.save();
   }
 
   @ApiOperation({

@@ -21,7 +21,7 @@ export class Order extends Document {
   @Prop({ default: 1, min: 1 })
   quantity: number;
 
-  @Prop({ enum: ENUM_ORDER_STATUS, default: ENUM_ORDER_STATUS.SUCCESSFULLY })
+  @Prop({ enum: ENUM_ORDER_STATUS, default: ENUM_ORDER_STATUS.FAILED })
   status: ENUM_ORDER_STATUS;
 
   @Prop({ type: ObjectId, ref: Promotion.name, default: null })
