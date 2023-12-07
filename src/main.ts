@@ -56,14 +56,14 @@ async function bootstrap() {
     logging.debug(`Server đang chạy trên PORT ${PORT}`);
   });
 
-  ngrok
-    .connect({
-      addr: PORT,
-      authtoken: '2Yz5TUsLIdBvscaUoxBcbpOTik7_6BeC3ArNwUnuRXZ4NBHSd',
-      domain: 'ultimate-implicitly-hound.ngrok-free.app',
-    })
-    .then((listener) =>
-      logging.debug(`Ingress established at: ${listener.url()}`),
-    );
+  // ngrok
+  //   .connect({
+  //     addr: PORT,
+  //     authtoken: '2Yz5TUsLIdBvscaUoxBcbpOTik7_6BeC3ArNwUnuRXZ4NBHSd',
+  //     domain: 'ultimate-implicitly-hound.ngrok-free.app',
+  //   })
+  //   .then((listener) =>
+  //     logging.debug(`Ingress established at: ${listener.url()}`),
+  //   );
 }
 bootstrap();

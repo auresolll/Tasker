@@ -14,9 +14,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FilterQuery, Model, mongo } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
+import { AuthNotRequired } from 'src/features/auth/decorators/auth-not-required.decorator';
 import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
+import { Order } from 'src/features/basket/schemas/order.schema';
 import { User } from 'src/features/user/schemas/user.schema';
 import { RecoverService } from 'src/features/user/services/recover.service';
 import { ENUM_ROLE_TYPE, getAllRoles } from 'src/shared/constants/role';
@@ -25,15 +27,13 @@ import { Roles } from 'src/shared/utils/roles.decorator';
 import { RolesGuard } from 'src/shared/utils/roles.guard';
 import { CreateTransactionTransferMoneyDto } from '../dtos/create-transaction';
 import { FetchTransaction } from '../dtos/fetch-transaction';
+import { InitiatePaymentDto } from '../dtos/initiate-payment';
 import {
   ENUM_TRANSACTION_STATUS,
   ENUM_TRANSACTION_TYPE,
   Transaction,
 } from '../schemas/transaction.schema';
 import { PaymentService } from '../services/payment.service';
-import { AuthNotRequired } from 'src/features/auth/decorators/auth-not-required.decorator';
-import { random } from 'lodash';
-import * as moment from 'moment';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -46,58 +46,99 @@ export class PaymentController {
 
     @InjectModel(Transaction.name) private TransactionModel: Model<Transaction>,
     @InjectModel(User.name) private UserModel: Model<User>,
+    @InjectModel(Order.name) private OrderModel: Model<Order>,
   ) {}
 
+  // @Roles(...getAllRoles())
   @AuthNotRequired()
   @ApiTags('Private Payment')
-  @Get('/initiate-payment')
-  initiatePayment(@Res() res: any, @Req() req: any): void {
-    var vnpUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
-    var returnUrl =
-      'https://ultimate-implicitly-hound.ngrok-free.app/payment/return';
+  @Get('initiate-payment-recharge')
+  async rechargePayment(
+    // @CurrentUser() user: User,
+    @Res() res: any,
+    @Req() req: any,
+    @Query() query: InitiatePaymentDto,
+  ): Promise<void> {
+    const user = await this.UserModel.findOne({ email: 'tnhan05@gmail.com' });
+    const returnUrl = 'http://localhost:5555/payment/callback';
 
-    var IP =
+    const ipAddress =
       req.headers['x-forwarded-for'] ||
       req.connection.remoteAddress ||
       req.socket.remoteAddress ||
       req.connection.socket.remoteAddress;
 
-    var secretKey: string = 'NFDCLZENBIXDCHBWGNCCITSSTUUUSWKF';
+    const isCreatedTransaction = await this.paymentService.createRecharge(
+      user,
+      query.amount,
+    );
 
-    let date = new Date();
-    let createDate = moment(date).format('YYYYMMDDHHmmss');
-    let orderID = moment(date).format('DDHHmmss');
-    let params: any = {
-      vnp_Version: '2.1.0',
-      vnp_IpAddr: IP,
-      vnp_Locale: 'vn',
-      vnp_Command: 'pay',
-      vnp_TmnCode: 'WWOFAI0K',
-      vnp_Amount: 100000 * 100,
-      vnp_CurrCode: 'VND',
-      vnp_OrderType: 'topup',
-      vnp_OrderInfo:
-        'Thanh toán đơn hàng #orderID:' +
-        orderID +
-        ' ' +
-        '#transaction_type:' +
-        ENUM_TRANSACTION_TYPE.WITHDRAWAL,
-      vnp_CreateDate: createDate,
-      vnp_ReturnUrl: returnUrl,
-      vnp_TxnRef: orderID,
-    };
+    const orderInfo = String(
+      `&useID=${user._id}&transactionID=${isCreatedTransaction._id}&transaction_type=${ENUM_TRANSACTION_TYPE.RECHARGE}`,
+    );
 
-    params = this.paymentService.sortObject(params);
+    res.redirect(
+      await this.paymentService.generatePaymentUrl(
+        ipAddress,
+        query.amount,
+        orderInfo,
+        returnUrl,
+      ),
+    );
+  }
 
-    var querystring = require('qs');
-    var signData = querystring.stringify(params, { encode: false });
-    var crypto = require('crypto');
-    var hmac = crypto.createHmac('sha512', secretKey);
-    var signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-    params['vnp_SecureHash'] = signed;
-    vnpUrl += '?' + querystring.stringify(params, { encode: false });
+  @AuthNotRequired()
+  @ApiTags('Private Payment')
+  @Get('initiate-payment-order')
+  async orderPayment(
+    @Res() res: any,
+    @Req() req: any,
+    @Query() query: InitiatePaymentDto,
+  ): Promise<void> {
+    const returnUrl = 'http://localhost:5555/payment/callback';
 
-    res.redirect(vnpUrl);
+    const ipAddress =
+      req.headers['x-forwarded-for'] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      req.connection.socket.remoteAddress;
+
+    const orderInfo = String(`Thanh toán đơn hàng`);
+
+    res.redirect(
+      await this.paymentService.generatePaymentUrl(
+        ipAddress,
+        query.amount,
+        orderInfo,
+        returnUrl,
+      ),
+    );
+  }
+
+  @AuthNotRequired()
+  @ApiTags('Private Payment')
+  @Get('callback')
+  async callbackReturn(@Req() req: any, @Res() res: any) {
+    let vnp_Params = req.query;
+    let secureHash = vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    vnp_Params = this.paymentService.sortObject(vnp_Params);
+    let secretKey: string = 'NFDCLZENBIXDCHBWGNCCITSSTUUUSWKF';
+    let querystring = require('qs');
+    let signData = querystring.stringify(vnp_Params, { encode: false });
+    let crypto = require('crypto');
+    let hmac = crypto.createHmac('sha512', secretKey);
+    let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+
+    if (secureHash !== signed) {
+      res.status(200).json({ RspCode: '97', Message: 'Fail checksum' });
+    }
+
+    let rspCode = vnp_Params['vnp_ResponseCode'];
+
+    res.status(200).json({ RspCode: '00', Message: 'success' });
   }
 
   @ApiOperation({
@@ -194,7 +235,6 @@ export class PaymentController {
       amount: body.amount,
       description: ENUM_TRANSACTION_TYPE.TRANSFER_MONEY,
       status: ENUM_TRANSACTION_STATUS.PEENING,
-      accountBank: 'system',
     };
 
     const isSuccessCreated = await this.TransactionModel.create(payload);
@@ -219,53 +259,6 @@ export class PaymentController {
       receiver: receiverSucceed,
       depositor: depositorSucceed,
       message: 'Chuyển tiền thành công',
-    };
-  }
-
-  @ApiTags('Private Transaction')
-  @Roles(...getAllRoles())
-  @Post('recharge')
-  async createRecharge(
-    @CurrentUser() user: User,
-    @Query('amount') amount: number,
-    @Query('accountBank') accountBank: string,
-  ) {
-    const administrator = await this.UserModel.findById(
-      '6544c8129d85a36c1ddbc67f',
-    );
-
-    if (!administrator)
-      throw new NotFoundException('Không tìm thấy tài khoản #Administrator');
-
-    const payloadCustomer: Partial<Transaction> = {
-      receiver: administrator._id,
-      depositor: user._id,
-      description: ENUM_TRANSACTION_TYPE.RECHARGE,
-      status: ENUM_TRANSACTION_STATUS.SUCCEED,
-      amount: amount,
-      accountBank: accountBank,
-    };
-
-    const isSuccessCreated = await this.TransactionModel.create(
-      payloadCustomer,
-    );
-
-    if (!isSuccessCreated)
-      throw new BadRequestException('Lỗi khi tạo giao dịch');
-
-    administrator.balance += amount;
-    user.balance += amount;
-
-    const [administratorSucceed, userSucceed] = await Promise.all([
-      administrator.save(),
-      user.save(),
-    ]);
-
-    return {
-      administrator: administratorSucceed,
-      user: userSucceed,
-      transaction: isSuccessCreated,
-      message: 'Nạp tiền thành công',
     };
   }
 
@@ -297,7 +290,6 @@ export class PaymentController {
       description: ENUM_TRANSACTION_TYPE.WITHDRAWAL,
       status: ENUM_TRANSACTION_STATUS.PEENING,
       amount: amount,
-      accountBank: user.bank,
     };
 
     const isSuccessCreated = await this.TransactionModel.create(payload);
@@ -317,6 +309,40 @@ export class PaymentController {
       user: userSucceed,
       transaction: isSuccessCreated,
       message: 'Rút tiền thành công, đang chờ xử lý',
+    };
+  }
+
+  @ApiTags('Private Transaction')
+  @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
+  @Patch('recharge')
+  async updateStatusRechargeTransaction(
+    @CurrentUser() user: User,
+    @Query('transactionID', new ParseObjectIdPipe()) id: string,
+  ) {
+    const [transaction, administrator] = await Promise.all([
+      this.TransactionModel.findById(id),
+      this.UserModel.findById('6544c8129d85a36c1ddbc67f'),
+    ]);
+
+    if (!transaction)
+      throw new NotFoundException(`Không tìm thấy #transaction: ${id}`);
+
+    administrator.balance += transaction.amount;
+    user.balance += transaction.amount;
+    transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
+
+    const [transactionSucceed, userSucceed, administratorSucceed] =
+      await Promise.all([
+        transaction.save(),
+        user.save(),
+        administrator.save(),
+      ]);
+
+    return {
+      transaction: transactionSucceed,
+      user: userSucceed,
+      administrator: administratorSucceed,
+      message: 'Nạp tiền thành công',
     };
   }
 
@@ -343,9 +369,7 @@ export class PaymentController {
       throw new NotFoundException(`Không tìm thấy #receiver: ${user}`);
 
     if (!administrator)
-      throw new NotFoundException(
-        `Không tìm thấy tài khoản #Administrator: ${administrator}`,
-      );
+      throw new NotFoundException(`Không tìm thấy tài khoản #Administrator`);
 
     transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
     administrator.balance -= transaction.amount;

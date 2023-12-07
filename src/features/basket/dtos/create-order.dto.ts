@@ -1,19 +1,22 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsMongoId,
   IsNumber,
-  IsNumberString,
   IsOptional,
   IsString,
-  Max,
   Min,
-} from "class-validator";
+} from 'class-validator';
 
 export class CreateOrderDto {
   @ApiProperty()
   @IsString()
   @IsMongoId()
-  product: string;
+  productID: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsMongoId()
+  promotionID: string;
 
   @ApiProperty()
   @Min(1)
