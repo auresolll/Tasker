@@ -1,9 +1,9 @@
-import { Prop, Schema } from "@nestjs/mongoose";
-import { Document } from "mongoose";
-import { User } from "src/features/user/schemas/user.schema";
-import { ObjectId } from "src/shared/mongoose/object-id";
-import { createSchemaForClassWithMethods } from "../../../shared/mongoose/create-schema";
-import { Product } from "./product.schema";
+import { Prop, Schema } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+import { User } from 'src/features/user/schemas/user.schema';
+import { ObjectId } from 'src/shared/mongoose/object-id';
+import { createSchemaForClassWithMethods } from '../../../shared/mongoose/create-schema';
+import { Product } from './product.schema';
 
 @Schema({ timestamps: true })
 export class Rating extends Document {
@@ -13,7 +13,7 @@ export class Rating extends Document {
   @Prop({ type: ObjectId, ref: Product.name })
   product: Product;
 
-  @Prop({ required: true, default: 0, min: 1, max: 5 })
+  @Prop({ required: true, default: 0, min: 1, max: 5, index: true })
   star: number;
 }
 

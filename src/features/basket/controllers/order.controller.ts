@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import moment from 'moment';
+import * as moment from 'moment';
 import { FilterQuery, Model } from 'mongoose';
 import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';

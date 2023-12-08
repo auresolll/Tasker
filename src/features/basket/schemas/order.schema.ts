@@ -18,19 +18,23 @@ export class Order extends Document {
   @Prop({ type: ObjectId, ref: Product.name })
   product: Product;
 
-  @Prop({ default: 1, min: 1 })
+  @Prop({ default: 1, min: 1, index: true })
   quantity: number;
 
-  @Prop({ enum: ENUM_ORDER_STATUS, default: ENUM_ORDER_STATUS.FAILED })
+  @Prop({
+    enum: ENUM_ORDER_STATUS,
+    default: ENUM_ORDER_STATUS.FAILED,
+    index: true,
+  })
   status: ENUM_ORDER_STATUS;
 
   @Prop({ type: ObjectId, ref: Promotion.name, default: null })
   promotion: Promotion;
 
-  @Prop({ required: true, min: 1000 })
+  @Prop({ required: true, min: 1000, index: true })
   orderPrice: number;
 
-  @Prop({ required: true, min: 1000 })
+  @Prop({ required: true, min: 1000, index: true })
   totalPrice: number;
 }
 

@@ -65,20 +65,14 @@ export class ProductController {
   async getProductsWithFilter(
     @Query() query: FetchProductsDto,
   ): Promise<ResponsePaginationDto<Product>> {
-    const categories = await this.categoriesService.getCategoriesBySlug(
-      query.categories,
-    );
-
     const filter: FilterQuery<Product> = {
       name: { $regex: `${query.name}`, $options: 'i' },
-      categories: categories ? categories._id : null,
       createdAt: { $lte: query.before },
       deletedAt: null,
     };
 
     if (!query.name) delete filter.name;
     if (!query.before) delete filter.createdAt;
-    if (!query.categories) delete filter.categories;
 
     const products = await this.productService.getProductsByFilter(
       query.limit,
@@ -87,10 +81,13 @@ export class ProductController {
       filter,
     );
 
-    const [orders, ratings] = await Promise.all([
+    const [orders, ratings, categories] = await Promise.all([
       this.orderService.getOrdersByProductsId(getFieldIds(products.result)),
       this.ratingService.getRatingByProductsId(getFieldIds(products.result)),
+      this.categoriesService.getCategoriesBySlug(query.categories),
     ]);
+
+    if (query.categories) filter.categories = categories._id;
 
     return {
       ...products,
@@ -111,13 +108,8 @@ export class ProductController {
   async getProductsByHot(
     @Query() query: FetchHotProductsDto,
   ): Promise<ResponsePaginationDto<Product>> {
-    const categories = await this.categoriesService.getCategoriesBySlug(
-      query.categories,
-    );
-
     const filter: FilterQuery<Product> = {
       name: { $regex: `${query.name}`, $options: 'i' },
-      categories: categories ? categories._id : null,
       createdAt: { $lte: query.before },
       deletedAt: null,
     };
@@ -128,10 +120,14 @@ export class ProductController {
 
     const START_OF_MONTH = moment().startOf('month').format('YYYY-MM-DD hh:mm');
     const END_OF_MONTH = moment().endOf('month').format('YYYY-MM-DD hh:mm');
-    const orders = await this.orderService.getOrdersByDate(
-      START_OF_MONTH,
-      END_OF_MONTH,
-    );
+
+    const [orders, categories] = await Promise.all([
+      this.orderService.getOrdersByDate(START_OF_MONTH, END_OF_MONTH),
+      this.categoriesService.getCategoriesBySlug(query.categories),
+    ]);
+
+    if (query.categories) filter.categories = categories._id;
+
     filter._id = {
       $in: getFieldIds(orders, 'product'),
     };
@@ -142,6 +138,7 @@ export class ProductController {
       query.getSkip(),
       filter,
     );
+
     const ratings = await this.ratingService.getRatingByProductsId(
       getFieldIds(products.result),
     );

@@ -1,10 +1,10 @@
-import { Prop, Schema } from "@nestjs/mongoose";
-import { Document, Schema as MongooseSchema } from "mongoose";
-import { User } from "src/features/user/schemas/user.schema";
-import { ObjectId } from "src/shared/mongoose/object-id";
-import { createSchemaForClassWithMethods } from "../../../shared/mongoose/create-schema";
-import { randomString } from "./../../../shared/utils/random-string";
-import { Categories } from "./categories.schema";
+import { Prop, Schema } from '@nestjs/mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
+import { User } from 'src/features/user/schemas/user.schema';
+import { ObjectId } from 'src/shared/mongoose/object-id';
+import { createSchemaForClassWithMethods } from '../../../shared/mongoose/create-schema';
+import { randomString } from './../../../shared/utils/random-string';
+import { Categories } from './categories.schema';
 
 export type AccompanyingProducts = {
   name: string;
@@ -13,16 +13,16 @@ export type AccompanyingProducts = {
 
 @Schema({ timestamps: true })
 export class Product extends Document {
-  @Prop({ type: ObjectId, ref: User.name })
+  @Prop({ type: ObjectId, ref: User.name, index: true })
   creator: User;
 
-  @Prop({ type: ObjectId, ref: Categories.name })
+  @Prop({ type: ObjectId, ref: Categories.name, index: true })
   categories: Categories;
 
-  @Prop({ required: true, default: 1, min: 1 })
+  @Prop({ required: true, default: 1, min: 1, index: true })
   quantity: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   name: string;
 
   @Prop({ required: true })
@@ -43,7 +43,7 @@ export class Product extends Document {
   @Prop({ required: true })
   pictures: string[];
 
-  @Prop({ unique: true, required: true, type: String, slug: "title" })
+  @Prop({ unique: true, required: true, type: String, slug: 'title' })
   slug: string;
 
   @Prop({ type: Date, default: null })
@@ -58,14 +58,14 @@ export class Product extends Document {
 
 export const ProductSchema = createSchemaForClassWithMethods(Product);
 
-ProductSchema.pre("save", function (next) {
-  this.slug = this.name.split(" ").join("-").toLowerCase();
+ProductSchema.pre('save', function (next) {
+  this.slug = this.name.split(' ').join('-').toLowerCase();
   next();
 });
 
-ProductSchema.pre("insertMany", function (next, docs) {
+ProductSchema.pre('insertMany', function (next, docs) {
   for (const doc of docs) {
-    doc.slug = doc.name.split(" ").join("-").toLowerCase();
+    doc.slug = doc.name.split(' ').join('-').toLowerCase();
   }
   next();
 });
