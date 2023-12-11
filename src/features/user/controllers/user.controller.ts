@@ -114,7 +114,7 @@ export class UserController {
   }
 
   @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
-  @Delete('')
+  @Delete('delete-user')
   @ApiTags('Private User')
   delete(@Query('userId', new ParseObjectIdPipe()) id: string) {
     return this.UserModel.findByIdAndUpdate(id, { deletedAt: new Date() });
