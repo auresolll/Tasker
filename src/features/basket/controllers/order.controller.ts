@@ -12,13 +12,16 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import * as moment from 'moment';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
 import { Product } from 'src/features/product/schemas/product.schema';
 import { User } from 'src/features/user/schemas/user.schema';
 import { blockFieldUser } from 'src/shared/constants/blockField';
-import { PaginationDto } from 'src/shared/constants/pagination';
+import {
+  PaginationDto,
+  ResponsePaginationDto,
+} from 'src/shared/constants/pagination';
 import { ENUM_ROLE_TYPE } from 'src/shared/constants/role';
 import { getFieldIds } from 'src/shared/utils/get-ids';
 import { RolesGuard } from 'src/shared/utils/roles.guard';
@@ -28,6 +31,7 @@ import { FetchOrdersByStatus } from '../dtos/fetch-orders-by-status.dto';
 import { ENUM_ORDER_STATUS, Order } from '../schemas/order.schema';
 import { Promotion } from 'src/features/product/schemas/promotions.schema';
 import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
+import { AuthNotRequired } from 'src/features/auth/decorators/auth-not-required.decorator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -40,8 +44,54 @@ export class OrderController {
   ) {}
 
   @ApiOperation({
+    summary: 'Lịch sử  đơn hàng đã mua Admin',
+  })
+  @ApiTags('Private Order')
+  @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
+  @Get(`histories-orders`)
+  @ApiOperation({
     summary: 'Lịch sử  đơn hàng đã mua',
   })
+  async getAllOrders(
+    @Query() query: PaginationDto,
+  ): Promise<ResponsePaginationDto<Order>> {
+    const filter: FilterQuery<Order> = {
+      created_at: {
+        $lt: moment(query.before),
+      },
+    };
+
+    const orders = await this.orderModel
+      .find(filter)
+      .populate({
+        path: 'product',
+        populate: {
+          path: 'categories',
+          model: 'Categories',
+        },
+      })
+      .populate({
+        path: 'product',
+        populate: {
+          path: 'creator',
+          model: 'User',
+          select: blockFieldUser,
+        },
+      })
+      .populate('user', blockFieldUser)
+      .limit(query.limit)
+      .skip(query.getSkip());
+
+    const count = await this.orderModel.count();
+    return {
+      totalItem: count,
+      totalPage: Math.ceil(count / query.limit),
+      limit: query.limit,
+      currentPage: query.page,
+      result: orders,
+    };
+  }
+
   @ApiTags('Private Order')
   @Roles(ENUM_ROLE_TYPE.CUSTOMER)
   @Get(`histories`)
@@ -197,5 +247,25 @@ export class OrderController {
       totalItem: count,
       totalPage: Math.ceil(count / query.limit),
     };
+  }
+
+  @ApiOperation({
+    summary: 'Get tất cả đơn hàng theo user (Admin)',
+  })
+  @ApiTags('Private Order')
+  @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
+  @Get('histories-order-by-user')
+  async getOrderByUser(
+    @Query('customer_id', new ParseObjectIdPipe()) customer_id: string,
+    @Query() query: PaginationDto,
+  ) {
+    return this.orderModel
+      .find({
+        user: new Types.ObjectId(customer_id),
+      })
+      .populate('product')
+      .limit(query.limit)
+      .skip(query.getSkip())
+      .sort({ createdAt: -1 });
   }
 }

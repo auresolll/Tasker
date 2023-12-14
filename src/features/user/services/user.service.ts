@@ -5,31 +5,30 @@ import {
   Injectable,
   NotFoundException,
   forwardRef,
-} from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { FilterQuery, Model, Types } from "mongoose";
-import { Socket } from "socket.io";
-import { UserGateway } from "../gateway/user.gateway";
-import { User } from "../schemas/user.schema";
-import { SocketConnectionService } from "./socket-connection.service";
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
+import { Socket } from 'socket.io';
+import { UserGateway } from '../gateway/user.gateway';
+import { User } from '../schemas/user.schema';
+import { SocketConnectionService } from './socket-connection.service';
 
 @Injectable()
 export class UserService {
   private blockedFields: (keyof User)[] = [
-    "password",
-    "sessionToken",
-    "facebookId",
-    "googleId",
-    "role",
-    "id",
+    'password',
+    'sessionToken',
+    'facebookId',
+    'googleId',
+    'id',
   ];
 
-  unpopulatedFields = "-" + this.blockedFields.join(" -");
+  unpopulatedFields = '-' + this.blockedFields.join(' -');
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @Inject(forwardRef(() => UserGateway)) private userGateway: UserGateway,
-    private socketConnectionService: SocketConnectionService
+    private socketConnectionService: SocketConnectionService,
   ) {}
 
   async getUsers() {
@@ -46,12 +45,12 @@ export class UserService {
     });
   }
   getUserByName(name: string) {
-    const username = { $regex: new RegExp(`^${name}$`, "i") };
+    const username = { $regex: new RegExp(`^${name}$`, 'i') };
     return this.userModel.findOne({ username, deletedAt: null });
   }
 
   getUserByEmail(mail: string) {
-    const email = { $regex: new RegExp(`^${mail}$`, "i") };
+    const email = { $regex: new RegExp(`^${mail}$`, 'i') };
 
     return this.userModel.findOne({ email, deletedAt: null });
   }
@@ -63,7 +62,7 @@ export class UserService {
   async validateUserById(id: Types.ObjectId) {
     const user = await this.getUserById(id);
 
-    if (!user) throw new NotFoundException("User.Not found");
+    if (!user) throw new NotFoundException('User.Not found');
 
     return user;
   }
@@ -71,7 +70,7 @@ export class UserService {
   async validateUserByName(username: string) {
     const user = await this.getUserByName(username);
 
-    if (!user) throw new HttpException("User.Not found", HttpStatus.NOT_FOUND);
+    if (!user) throw new HttpException('User.Not found', HttpStatus.NOT_FOUND);
 
     return user;
   }
@@ -79,7 +78,7 @@ export class UserService {
   async validateUserByEmail(mail: string) {
     const user = await this.getUserByEmail(mail);
 
-    if (!user) throw new HttpException("User.Not found", HttpStatus.NOT_FOUND);
+    if (!user) throw new HttpException('User.Not found', HttpStatus.NOT_FOUND);
 
     return user;
   }
