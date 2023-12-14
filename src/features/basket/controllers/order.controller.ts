@@ -48,7 +48,7 @@ export class OrderController {
   })
   @ApiTags('Private Order')
   @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
-  @Get(`histories-orders`)
+  @Get(`all-orders`)
   @ApiOperation({
     summary: 'Lịch sử  đơn hàng đã mua',
   })
@@ -56,10 +56,12 @@ export class OrderController {
     @Query() query: PaginationDto,
   ): Promise<ResponsePaginationDto<Order>> {
     const filter: FilterQuery<Order> = {
-      created_at: {
+      createdAt: {
         $lt: moment(query.before),
       },
     };
+
+    if (!query.before) delete filter.createdAt;
 
     const orders = await this.orderModel
       .find(filter)
@@ -101,12 +103,12 @@ export class OrderController {
   ) {
     const filter: FilterQuery<Order> = {
       user: user._id,
-      created_at: {
+      createdAt: {
         $lt: moment(query.before),
       },
     };
 
-    if (!query.before) delete filter['created_at'];
+    if (!query.before) delete filter['createdAt'];
 
     const orders = await this.orderModel
       .find(filter)
