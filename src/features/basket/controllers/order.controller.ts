@@ -150,11 +150,13 @@ export class OrderController {
       throw new BadGatewayException('Số lượng không đủ để order');
 
     const originalPrice = body.orderPrice * body.quantity;
+
     const payload: Partial<Order> = {
       ...body,
       user: user._id,
       product: product._id,
       promotion: promotion ? promotion._id : null,
+      status: ENUM_ORDER_STATUS.FAILED,
       totalPrice:
         originalPrice - (originalPrice * promotion.discount || 0 / 100),
     };

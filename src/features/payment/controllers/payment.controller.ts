@@ -98,7 +98,7 @@ export class PaymentController {
     @Req() req: any,
     @Query() query: InitiatePaymentOrderDto,
   ): Promise<void> {
-    const returnUrl = 'http://localhost:5555/payment/callback';
+    const returnUrl = 'http://localhost:8080/payment/callback';
 
     const ipAddress =
       req.headers['x-forwarded-for'] ||
