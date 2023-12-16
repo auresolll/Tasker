@@ -52,44 +52,6 @@ export class PaymentController {
     @InjectModel(Order.name) private OrderModel: Model<Order>,
   ) {}
 
-  // @Roles(...getAllRoles())
-  @AuthNotRequired()
-  @ApiTags('Private Payment')
-  @Get('initiate-payment-recharge')
-  async rechargePayment(
-    // @CurrentUser() user: User,
-    @Res() res: any,
-    @Req() req: any,
-    @Query() query: InitiatePaymentDto,
-  ): Promise<void> {
-    const user = await this.UserModel.findOne({ email: 'tnhan05@gmail.com' });
-    const returnUrl = 'http://localhost:5555/payment/callback';
-
-    const ipAddress =
-      req.headers['x-forwarded-for'] ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress ||
-      req.connection.socket.remoteAddress;
-
-    const isCreatedTransaction = await this.paymentService.createRecharge(
-      user,
-      query.amount,
-    );
-
-    const orderInfo = String(
-      `&useID=${user._id}&transactionID=${isCreatedTransaction._id}&transaction_type=${ENUM_TRANSACTION_TYPE.RECHARGE}`,
-    );
-
-    res.redirect(
-      await this.paymentService.generatePaymentUrl(
-        ipAddress,
-        query.amount,
-        orderInfo,
-        returnUrl,
-      ),
-    );
-  }
-
   @AuthNotRequired()
   @ApiTags('Private Payment')
   @Get('initiate-payment-order')

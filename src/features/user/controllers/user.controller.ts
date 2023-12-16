@@ -114,10 +114,17 @@ export class UserController {
   }
 
   @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
-  @Delete('delete-user')
+  @Delete('banned-user')
   @ApiTags('Private User')
-  delete(@Query('userId', new ParseObjectIdPipe()) id: string) {
-    return this.UserModel.findByIdAndUpdate(id, { deletedAt: new Date() });
+  delete(
+    @Query('userId', new ParseObjectIdPipe()) id: string,
+    @Query('status') status: string,
+  ) {
+    const isTrueSet = /^true$/i.test(status);
+    if (isTrueSet) {
+      return this.UserModel.findByIdAndUpdate(id, { deletedAt: new Date() });
+    }
+    return this.UserModel.findByIdAndUpdate(id, { deletedAt: null });
   }
 
   @ApiTags('Private Setting')
@@ -129,7 +136,7 @@ export class UserController {
 
   @ApiTags('Private Setting')
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  @Delete()
+  @Delete('bank')
   deleteBank(@CurrentUser() user: User) {
     return this.UserModel.findByIdAndUpdate(user._id, { bank: null });
   }
