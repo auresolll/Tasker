@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 import { AuthNotRequired } from 'src/features/auth/decorators/auth-not-required.decorator';
 import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
@@ -148,6 +148,8 @@ export class PaymentController {
     const filter: FilterQuery<Transaction> = {
       description: query.type,
     };
+
+    if (query.userID) filter.receiver = new Types.ObjectId(query.userID);
 
     if (!query.type) delete filter.description;
 
