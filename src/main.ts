@@ -20,6 +20,7 @@ async function bootstrap() {
   const logging = new Logging();
 
   app.enableCors({
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // enable passing cookies, authentication headers, etc.
   });
