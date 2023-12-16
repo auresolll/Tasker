@@ -16,38 +16,44 @@ import { CreateMediaDto } from '../dtos/create-media.dto';
 @ApiTags('Media')
 @UseGuards(...[JwtAuthGuard, RolesGuard])
 @ApiBearerAuth('accessToken')
-@Controller('Media')
+@Controller('media')
 export class MediaController {
-    constructor(private mediaService: MediaService, private userService: UserService) {}
+  constructor(
+    private mediaService: MediaService,
+    private userService: UserService,
+  ) {}
 
-    @Roles(...getAllRoles())
-    @Get('direct-media')
-    async getDirectMedia(
-        @CurrentUser() user: User,
-        @Query('to', new ParseObjectIdPipe()) to: string,
-        @Query() query: FetchMediaDto,
-    ) {
-        const userTo = await this.userService.validateUserById(new Types.ObjectId(to));
+  @Roles(...getAllRoles())
+  @Get('direct-media')
+  async getDirectMedia(
+    @CurrentUser() user: User,
+    @Query('to', new ParseObjectIdPipe()) to: string,
+    @Query() query: FetchMediaDto,
+  ) {
+    const userTo = await this.userService.validateUserById(
+      new Types.ObjectId(to),
+    );
 
-        return this.mediaService.getDirectMedia(
-            user,
-            userTo,
-            query.limit,
-            query.before,
-            query.type,
-        );
-    }
+    return this.mediaService.getDirectMedia(
+      user,
+      userTo,
+      query.limit,
+      query.before,
+    );
+  }
 
-    @Roles(...getAllRoles())
-    @Post('create-media')
-    async CreateMedia(
-        @CurrentUser() user: User,
-        @Query('to', new ParseObjectIdPipe()) to: string,
-        @Query() Query: CreateMediaDto,
-    ) {
-        const { fileName, url, type } = Query;
-        const userTo = await this.userService.validateUserById(new Types.ObjectId(to));
+  @Roles(...getAllRoles())
+  @Post('create-media')
+  async CreateMedia(
+    @CurrentUser() user: User,
+    @Query('to', new ParseObjectIdPipe()) to: string,
+    @Query() Query: CreateMediaDto,
+  ) {
+    const { fileName, url, type } = Query;
+    const userTo = await this.userService.validateUserById(
+      new Types.ObjectId(to),
+    );
 
-        return this.mediaService.create(user, userTo, fileName, url, type);
-    }
+    return this.mediaService.create(user, userTo, fileName, url, type);
+  }
 }
