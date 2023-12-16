@@ -8,16 +8,11 @@ import { MessagesGateway } from './gateways/messages.gateway';
 import { Message, MessageSchema } from './schemas/messages.schema';
 import { MediaService } from './services/media.service';
 import { MessageService } from './services/messages.service';
-import { Media, MediaSchema } from './schemas/media.schema';
 import { Models } from 'src/shared/constants/model';
 
 @Module({
-    imports: [
-        Models,
-        UserModule,
-        AuthModule,
-    ],
-    controllers: [MessageController, MediaController],
-    providers: [MessagesGateway, MessageService, MediaService],
+  imports: [Models, UserModule, AuthModule],
+  controllers: [MessageController, MediaController],
+  providers: [MessagesGateway, MessageService, MediaService],
 })
 export class MessagesModule {}
