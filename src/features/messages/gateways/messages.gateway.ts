@@ -1,16 +1,16 @@
 import {
-    HttpException,
-    HttpStatus,
-    UseFilters,
-    UseGuards,
-    UsePipes,
-    ValidationPipe,
+  HttpException,
+  HttpStatus,
+  UseFilters,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
-    MessageBody,
-    SubscribeMessage,
-    WebSocketGateway,
-    WebSocketServer,
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { Types } from 'mongoose';
 import { Server } from 'socket.io';
@@ -30,50 +30,50 @@ import { UserService } from './../../user/services/user.service';
 @UsePipes(new ValidationPipe())
 @UseFilters(new ExceptionsFilter())
 @UseGuards(...[JwtAuthGuard, RolesGuard])
-@WebSocketGateway()
+@WebSocketGateway({ cors: '*:*' })
 export class MessagesGateway implements TypedEventMessages {
-    @WebSocketServer() server: Server;
+  @WebSocketServer() server: Server;
 
-    constructor(
-        private readonly messageService: MessageService,
-        private userService: UserService,
-    ) {}
+  constructor(
+    private readonly messageService: MessageService,
+    private userService: UserService,
+  ) {}
 
-    @Roles(...getAllRoles())
-    @SubscribeMessage('message:direct')
-    async sendDirectMessage(
-        @MessageBody() body: DirectMessageDto,
-        @CurrentUser() user: User,
-    ) {
-        const userTo = await this.userService
-            .validateUserById(new Types.ObjectId(body.to))
-            .catch(() => {
-                throw new HttpException('Invalid userId', HttpStatus.BAD_REQUEST);
-            });
+  @Roles(...getAllRoles())
+  @SubscribeMessage('message:direct')
+  async sendDirectMessage(
+    @MessageBody() body: DirectMessageDto,
+    @CurrentUser() user: User,
+  ) {
+    const userTo = await this.userService
+      .validateUserById(new Types.ObjectId(body.to))
+      .catch(() => {
+        throw new HttpException('Invalid userId', HttpStatus.BAD_REQUEST);
+      });
 
-        const message = await this.messageService.createDirectMessage(
-            user,
-            userTo,
-            body.content,
-            body.type,
-        );
+    const message = await this.messageService.createDirectMessage(
+      user,
+      userTo,
+      body.content,
+      body.type,
+    );
 
-        this.userService.sendMessage(user, 'message:direct', message);
-        this.userService.sendMessage(userTo, 'message:direct', message);
+    this.userService.sendMessage(user, 'message:direct', message);
+    this.userService.sendMessage(userTo, 'message:direct', message);
 
-        return true;
-    }
+    return true;
+  }
 
-    @Roles(...getAllRoles())
-    @SubscribeMessage('message:direct:typing')
-    async sendDirectTyping(
-        @MessageBody('to', new ParseObjectIdPipe()) to: Types.ObjectId,
-        @CurrentUser() user: User,
-    ) {
-        const userTo = await this.userService.validateUserById(to);
-        return this.userService.sendMessage(userTo, 'message:direct:typing', {
-            user: this.userService.filterUser(user),
-            typing: true,
-        });
-    }
+  @Roles(...getAllRoles())
+  @SubscribeMessage('message:direct:typing')
+  async sendDirectTyping(
+    @MessageBody('to', new ParseObjectIdPipe()) to: Types.ObjectId,
+    @CurrentUser() user: User,
+  ) {
+    const userTo = await this.userService.validateUserById(to);
+    return this.userService.sendMessage(userTo, 'message:direct:typing', {
+      user: this.userService.filterUser(user),
+      typing: true,
+    });
+  }
 }

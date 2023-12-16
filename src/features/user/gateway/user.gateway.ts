@@ -1,19 +1,19 @@
 import {
-    forwardRef,
-    Inject,
-    Logger,
-    UseFilters,
-    UseGuards,
-    UsePipes,
-    ValidationPipe,
+  forwardRef,
+  Inject,
+  Logger,
+  UseFilters,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
-    ConnectedSocket,
-    OnGatewayConnection,
-    OnGatewayDisconnect,
-    SubscribeMessage,
-    WebSocketGateway,
-    WebSocketServer,
+  ConnectedSocket,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ExceptionsFilter } from 'src/core/filter/exceptions.filter';
@@ -27,35 +27,38 @@ import { RolesGuard } from 'src/shared/utils/roles.guard';
 @UsePipes(new ValidationPipe())
 @UseFilters(new ExceptionsFilter())
 @UseGuards(JwtAuthGuard, RolesGuard)
-@WebSocketGateway()
+@WebSocketGateway({ cors: '*:*' })
 export class UserGateway implements OnGatewayDisconnect, OnGatewayConnection {
-    @WebSocketServer()
-    server: Server;
+  @WebSocketServer()
+  server: Server;
 
-    logger = new Logger(this.constructor.name);
+  logger = new Logger(this.constructor.name);
 
-    online = 0;
+  online = 0;
 
-    constructor(
-        @Inject(forwardRef(() => UserService)) private userService: UserService,
-    ) {}
+  constructor(
+    @Inject(forwardRef(() => UserService)) private userService: UserService,
+  ) {}
 
-    handleConnection() {
-        this.online++;
+  handleConnection() {
+    this.online++;
+  }
+
+  handleDisconnect(socket: Socket) {
+    this.online--;
+    const user = getSocketUser(socket);
+
+    if (!user) {
+      return;
     }
+    return this.userService.unsubscribeSocket(socket, user);
+  }
 
-    handleDisconnect(socket: Socket) {
-        this.online--;
-        const user = getSocketUser(socket);
-
-        if (!user) {
-            return;
-        }
-        return this.userService.unsubscribeSocket(socket, user);
-    }
-
-    @SubscribeMessage('user:subscribe')
-    async subscribe(@ConnectedSocket() client: Socket, @CurrentUser() user: User) {
-        return this.userService.subscribeSocket(client, user);
-    }
+  @SubscribeMessage('user:subscribe')
+  async subscribe(
+    @ConnectedSocket() client: Socket,
+    @CurrentUser() user: User,
+  ) {
+    return this.userService.subscribeSocket(client, user);
+  }
 }

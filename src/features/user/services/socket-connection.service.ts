@@ -17,6 +17,8 @@ export class SocketConnectionService {
   ) {}
 
   async create(socket: Socket, user: User) {
+    console.log(user);
+
     const connection = await this.socketConnectionModel.create({
       user: user._id,
       socketId: socket.id,
