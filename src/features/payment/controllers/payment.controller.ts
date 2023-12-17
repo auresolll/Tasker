@@ -229,6 +229,7 @@ export class PaymentController {
     };
   }
 
+  @ApiOperation({ summary: 'Tạo 1 giao dịch rút tiền' })
   @ApiTags('Private Transaction')
   @Roles(...getAllRoles())
   @Post('withdrawal')
@@ -242,11 +243,6 @@ export class PaymentController {
 
     if (!administrator)
       throw new NotFoundException('Không tìm thấy tài khoản #Administrator');
-
-    if (user.bank)
-      throw new BadRequestException(
-        'Bạn phải cập nhập tài khoản ngân hàng để rút tiền',
-      );
 
     if (user.balance - amount <= 0)
       throw new BadRequestException('Số tiền trong tài khoản không đủ');
@@ -279,40 +275,41 @@ export class PaymentController {
     };
   }
 
-  @ApiTags('Private Transaction')
-  @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
-  @Patch('recharge')
-  async updateStatusRechargeTransaction(
-    @CurrentUser() user: User,
-    @Query('transactionID', new ParseObjectIdPipe()) id: string,
-  ) {
-    const [transaction, administrator] = await Promise.all([
-      this.TransactionModel.findById(id),
-      this.UserModel.findById('6544c8129d85a36c1ddbc67f'),
-    ]);
+  // @ApiTags('Private Transaction')
+  // @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
+  // @Patch('recharge')
+  // async updateStatusRechargeTransaction(
+  //   @CurrentUser() user: User,
+  //   @Query('transactionID', new ParseObjectIdPipe()) id: string,
+  // ) {
+  //   const [transaction, administrator] = await Promise.all([
+  //     this.TransactionModel.findById(id),
+  //     this.UserModel.findById('6544c8129d85a36c1ddbc67f'),
+  //   ]);
 
-    if (!transaction)
-      throw new NotFoundException(`Không tìm thấy #transaction: ${id}`);
+  //   if (!transaction)
+  //     throw new NotFoundException(`Không tìm thấy #transaction: ${id}`);
 
-    administrator.balance += transaction.amount;
-    user.balance += transaction.amount;
-    transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
+  //   administrator.balance += transaction.amount;
+  //   user.balance += transaction.amount;
+  //   transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
 
-    const [transactionSucceed, userSucceed, administratorSucceed] =
-      await Promise.all([
-        transaction.save(),
-        user.save(),
-        administrator.save(),
-      ]);
+  //   const [transactionSucceed, userSucceed, administratorSucceed] =
+  //     await Promise.all([
+  //       transaction.save(),
+  //       user.save(),
+  //       administrator.save(),
+  //     ]);
 
-    return {
-      transaction: transactionSucceed,
-      user: userSucceed,
-      administrator: administratorSucceed,
-      message: 'Nạp tiền thành công',
-    };
-  }
+  //   return {
+  //     transaction: transactionSucceed,
+  //     user: userSucceed,
+  //     administrator: administratorSucceed,
+  //     message: 'Nạp tiền thành công',
+  //   };
+  // }
 
+  @ApiOperation({ summary: 'Thay đổi trạng thái rút tiền' })
   @ApiTags('Private Transaction')
   @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
   @Patch('withdrawal')
