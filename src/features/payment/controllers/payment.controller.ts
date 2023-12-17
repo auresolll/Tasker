@@ -88,7 +88,7 @@ export class PaymentController {
       req.socket.remoteAddress ||
       req.connection.socket.remoteAddress;
 
-    const orderInfo = String(`Thanh toán đơn hàng`);
+    const orderInfo = String(`ORDER_ID: ${query.orderID}`);
 
     res.redirect(
       await this.paymentService.generatePaymentUrl(

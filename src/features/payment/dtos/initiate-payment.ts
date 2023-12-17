@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsMongoId, IsNumber, IsString } from 'class-validator';
 
 export class InitiatePaymentDto {
   @ApiProperty()
@@ -8,6 +9,12 @@ export class InitiatePaymentDto {
 
 export class InitiatePaymentOrderDto {
   @ApiProperty()
+  @IsMongoId()
+  @IsString()
+  orderID: string;
+
+  @ApiProperty()
+  @Type(() => Number)
   @IsNumber()
   amount: number;
 }
