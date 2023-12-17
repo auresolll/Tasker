@@ -158,7 +158,8 @@ export class OrderController {
       promotion: promotion ? promotion._id : null,
       status: ENUM_ORDER_STATUS.FAILED,
       totalPrice:
-        originalPrice - (originalPrice * promotion.discount || 0 / 100),
+        originalPrice -
+        (originalPrice * (promotion ? promotion.discount : 0)) / 100,
     };
 
     product.numberHasSeller++;
