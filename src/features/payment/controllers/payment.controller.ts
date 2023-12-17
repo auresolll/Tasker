@@ -37,6 +37,7 @@ import {
   Transaction,
 } from '../schemas/transaction.schema';
 import { PaymentService } from '../services/payment.service';
+import { UpdateTransactionDto } from '../dtos/update-status-transaction';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -168,66 +169,66 @@ export class PaymentController {
     };
   }
 
-  @ApiOperation({
-    summary: 'Tạo giao dịch chuyển tiền',
-  })
-  @ApiTags('Private Transaction')
-  @Roles(...getAllRoles())
-  @Post('transfer-system')
-  async createTransactionTransferMoney(
-    @CurrentUser() user: User,
-    @Body() body: CreateTransactionTransferMoneyDto,
-  ) {
-    const [user_receiver, user_depositor] = await Promise.all([
-      this.UserModel.findById(body.receiver),
-      this.UserModel.findById(body.depositor),
-    ]);
+  // @ApiOperation({
+  //   summary: 'Tạo giao dịch chuyển tiền',
+  // })
+  // @ApiTags('Private Transaction')
+  // @Roles(...getAllRoles())
+  // @Post('transfer-system')
+  // async createTransactionTransferMoney(
+  //   @CurrentUser() user: User,
+  //   @Body() body: CreateTransactionTransferMoneyDto,
+  // ) {
+  //   const [user_receiver, user_depositor] = await Promise.all([
+  //     this.UserModel.findById(body.receiver),
+  //     this.UserModel.findById(body.depositor),
+  //   ]);
 
-    if (!user_receiver || !user_depositor)
-      throw new NotFoundException(
-        `Không tìm thấy ${user_receiver ? 'Người nhận' : 'Người gửi'}`,
-      );
+  //   if (!user_receiver || !user_depositor)
+  //     throw new NotFoundException(
+  //       `Không tìm thấy ${user_receiver ? 'Người nhận' : 'Người gửi'}`,
+  //     );
 
-    if (body.amount < 10000)
-      throw new BadRequestException(
-        'Số tiền giao dịch không thể nhỏ hơn 10.000 VND',
-      );
+  //   if (body.amount < 10000)
+  //     throw new BadRequestException(
+  //       'Số tiền giao dịch không thể nhỏ hơn 10.000 VND',
+  //     );
 
-    if (user.balance - body.amount <= 0)
-      throw new BadRequestException('Số tiền trong tài khoản không đủ');
+  //   if (user.balance - body.amount <= 0)
+  //     throw new BadRequestException('Số tiền trong tài khoản không đủ');
 
-    const payload: Partial<Transaction> = {
-      receiver: user_receiver._id,
-      depositor: user_depositor._id,
-      amount: body.amount,
-      description: ENUM_TRANSACTION_TYPE.TRANSFER_MONEY,
-      status: ENUM_TRANSACTION_STATUS.PEENING,
-    };
+  //   const payload: Partial<Transaction> = {
+  //     receiver: user_receiver._id,
+  //     depositor: user_depositor._id,
+  //     amount: body.amount,
+  //     description: ENUM_TRANSACTION_TYPE.TRANSFER_MONEY,
+  //     status: ENUM_TRANSACTION_STATUS.PEENING,
+  //   };
 
-    const isSuccessCreated = await this.TransactionModel.create(payload);
+  //   const isSuccessCreated = await this.TransactionModel.create(payload);
 
-    if (!isSuccessCreated)
-      throw new BadRequestException('Tạo giao dịch không thành công');
+  //   if (!isSuccessCreated)
+  //     throw new BadRequestException('Tạo giao dịch không thành công');
 
-    user_receiver.balance += body.amount;
-    user_depositor.balance -= body.amount;
+  //   user_receiver.balance += body.amount;
+  //   user_depositor.balance -= body.amount;
 
-    isSuccessCreated.status = ENUM_TRANSACTION_STATUS.SUCCEED;
+  //   isSuccessCreated.status = ENUM_TRANSACTION_STATUS.SUCCEED;
 
-    const [isTransactionSucceed, receiverSucceed, depositorSucceed] =
-      await Promise.all([
-        isSuccessCreated.save(),
-        user_receiver.save(),
-        user_depositor.save(),
-      ]);
+  //   const [isTransactionSucceed, receiverSucceed, depositorSucceed] =
+  //     await Promise.all([
+  //       isSuccessCreated.save(),
+  //       user_receiver.save(),
+  //       user_depositor.save(),
+  //     ]);
 
-    return {
-      transaction: isTransactionSucceed,
-      receiver: receiverSucceed,
-      depositor: depositorSucceed,
-      message: 'Chuyển tiền thành công',
-    };
-  }
+  //   return {
+  //     transaction: isTransactionSucceed,
+  //     receiver: receiverSucceed,
+  //     depositor: depositorSucceed,
+  //     message: 'Chuyển tiền thành công',
+  //   };
+  // }
 
   @ApiOperation({ summary: 'Tạo 1 giao dịch rút tiền' })
   @ApiTags('Private Transaction')
@@ -261,6 +262,7 @@ export class PaymentController {
       throw new BadRequestException('Lỗi khi tạo giao dịch');
 
     user.balance -= amount;
+    administrator.balance -= amount;
 
     const [administratorSucceed, userSucceed] = await Promise.all([
       administrator.save(),
@@ -275,40 +277,6 @@ export class PaymentController {
     };
   }
 
-  // @ApiTags('Private Transaction')
-  // @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
-  // @Patch('recharge')
-  // async updateStatusRechargeTransaction(
-  //   @CurrentUser() user: User,
-  //   @Query('transactionID', new ParseObjectIdPipe()) id: string,
-  // ) {
-  //   const [transaction, administrator] = await Promise.all([
-  //     this.TransactionModel.findById(id),
-  //     this.UserModel.findById('6544c8129d85a36c1ddbc67f'),
-  //   ]);
-
-  //   if (!transaction)
-  //     throw new NotFoundException(`Không tìm thấy #transaction: ${id}`);
-
-  //   administrator.balance += transaction.amount;
-  //   user.balance += transaction.amount;
-  //   transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
-
-  //   const [transactionSucceed, userSucceed, administratorSucceed] =
-  //     await Promise.all([
-  //       transaction.save(),
-  //       user.save(),
-  //       administrator.save(),
-  //     ]);
-
-  //   return {
-  //     transaction: transactionSucceed,
-  //     user: userSucceed,
-  //     administrator: administratorSucceed,
-  //     message: 'Nạp tiền thành công',
-  //   };
-  // }
-
   @ApiOperation({ summary: 'Thay đổi trạng thái rút tiền' })
   @ApiTags('Private Transaction')
   @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
@@ -316,6 +284,7 @@ export class PaymentController {
   async updateStatusWithdrawalTransaction(
     @Query('transactionID', new ParseObjectIdPipe()) id: string,
     @Query('receiverID', new ParseObjectIdPipe()) user: string,
+    @Query('status') status: UpdateTransactionDto,
   ) {
     const [transaction, receiver, administrator] = await Promise.all([
       this.TransactionModel.findById(id),
@@ -335,8 +304,7 @@ export class PaymentController {
     if (!administrator)
       throw new NotFoundException(`Không tìm thấy tài khoản #Administrator`);
 
-    transaction.status = ENUM_TRANSACTION_STATUS.SUCCEED;
-    administrator.balance -= transaction.amount;
+    transaction.status = status.transaction_type;
 
     const [transactionSucceed, receiverSucceed, administratorSucceed] =
       await Promise.all([
