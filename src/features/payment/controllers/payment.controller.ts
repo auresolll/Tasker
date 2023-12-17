@@ -55,7 +55,7 @@ export class PaymentController {
     @InjectModel(Order.name) private OrderModel: Model<Order>,
   ) {}
 
-  @AuthNotRequired()
+  @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
   @ApiTags('Private Payment')
   @Get('statistical-overview')
   async statisticalOverview(
