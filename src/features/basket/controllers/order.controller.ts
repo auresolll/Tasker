@@ -32,6 +32,7 @@ import { ENUM_ORDER_STATUS, Order } from '../schemas/order.schema';
 import { Promotion } from 'src/features/product/schemas/promotions.schema';
 import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
 import { AuthNotRequired } from 'src/features/auth/decorators/auth-not-required.decorator';
+import { UpdateStatusOrder } from '../dtos/update-status-order';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -182,9 +183,10 @@ export class OrderController {
   async updateStatusOrder(
     @CurrentUser() user: User,
     @Query('orderID', new ParseObjectIdPipe()) id: string,
+    @Query('status') status: UpdateStatusOrder,
   ) {
     const order = await this.orderModel.findById({ _id: id, user: user._id });
-    order.status = ENUM_ORDER_STATUS.SUCCESSFULLY;
+    order.status = status.status;
     return order.save();
   }
 
