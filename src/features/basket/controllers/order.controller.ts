@@ -142,6 +142,9 @@ export class OrderController {
   @Roles(ENUM_ROLE_TYPE.CUSTOMER)
   @Post('')
   async createOrder(@CurrentUser() user: User, @Body() body: CreateOrderDto) {
+    if (user.deletedAt !== null)
+      throw new BadGatewayException('Is Banned Account');
+
     const product = await this.productModel.findById(body.productID);
     const promotion = await this.PromotionModel.findById(body.promotionID);
 
@@ -185,6 +188,9 @@ export class OrderController {
     @Query('orderID', new ParseObjectIdPipe()) id: string,
     @Query('status') status: UpdateStatusOrder,
   ) {
+    if (user.deletedAt !== null)
+      throw new BadGatewayException('Is Banned Account');
+
     const order = await this.orderModel.findById({ _id: id, user: user._id });
     order.status = status.status;
     return order.save();
