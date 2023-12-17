@@ -32,7 +32,7 @@ export class UserService {
   ) {}
 
   async getUsers() {
-    return this.userModel.find({ deletedAt: null });
+    return this.userModel.find();
   }
   async getUserById(id: Types.ObjectId) {
     return await this.userModel.findById(id);
@@ -41,18 +41,17 @@ export class UserService {
   getOnlineUsers() {
     return this.userModel.find({
       online: true,
-      deletedAt: null,
     });
   }
   getUserByName(name: string) {
     const username = { $regex: new RegExp(`^${name}$`, 'i') };
-    return this.userModel.findOne({ username, deletedAt: null });
+    return this.userModel.findOne({ username });
   }
 
   getUserByEmail(mail: string) {
     const email = { $regex: new RegExp(`^${mail}$`, 'i') };
 
-    return this.userModel.findOne({ email, deletedAt: null });
+    return this.userModel.findOne({ email });
   }
 
   getUserBy(filter: FilterQuery<User>) {

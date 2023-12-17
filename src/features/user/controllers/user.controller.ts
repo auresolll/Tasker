@@ -121,9 +121,9 @@ export class UserController {
     @Query('status') status: string,
   ) {
     const isTrueSet = /^true$/i.test(status);
-    if (isTrueSet) {
+    if (isTrueSet)
       return this.UserModel.findByIdAndUpdate(id, { deletedAt: new Date() });
-    }
+
     return this.UserModel.findByIdAndUpdate(id, { deletedAt: null });
   }
 

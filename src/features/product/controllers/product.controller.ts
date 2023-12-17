@@ -52,7 +52,7 @@ export class ProductController {
     private ratingService: RatingService,
     private categoriesService: CategoriesService,
 
-    @InjectModel(Product.name) private productModel: Model<Product>,
+    @InjectModel(Product.name) private ProductModel: Model<Product>,
     @InjectModel(Categories.name) private CategoriesModel: Model<Categories>,
   ) {}
 
@@ -160,8 +160,10 @@ export class ProductController {
   @ApiTags('Public Product')
   @Get('detail')
   async getDetailProduct(@Query('slug') slug: string) {
-    const product = await this.productModel
-      .findOne({ slug: slug, deletedAt: null })
+    const product = await this.ProductModel.findOne({
+      slug: slug,
+      deletedAt: null,
+    })
       .populate('creator', blockFieldUser)
       .populate('categories');
 
@@ -280,7 +282,7 @@ export class ProductController {
     @Query('id', new ParseObjectIdPipe()) id: string,
     @Body() body: CreateProductDto,
   ) {
-    return this.productModel.findByIdAndUpdate({ _id: id }, body);
+    return this.ProductModel.findByIdAndUpdate({ _id: id }, body);
   }
 
   @Roles(ENUM_ROLE_TYPE.SELLER)
@@ -290,7 +292,7 @@ export class ProductController {
   @Delete()
   @ApiTags('Private Product')
   deleteProduct(@Query('id', new ParseObjectIdPipe()) id: string) {
-    return this.productModel.findByIdAndUpdate(
+    return this.ProductModel.findByIdAndUpdate(
       { _id: id },
       { deletedAt: new Date() },
     );
@@ -319,13 +321,12 @@ export class ProductController {
 
     console.log(filter);
 
-    const products = await this.productModel
-      .find(filter)
+    const products = await this.ProductModel.find(filter)
       .sort({ createdAt: query.timeSort === 'ASC' ? 'asc' : 'desc' })
       .limit(query.limit)
       .skip(query.getSkip());
 
-    const count = await this.productModel.count(filter);
+    const count = await this.ProductModel.count(filter);
     return {
       currentPage: query.page,
       limit: query.limit,
@@ -354,13 +355,12 @@ export class ProductController {
 
     if (!query.name) delete filter.name;
 
-    const products = await this.productModel
-      .find(filter)
+    const products = await this.ProductModel.find(filter)
       .sort({ createdAt: query.timeSort === 'ASC' ? 'asc' : 'desc' })
       .limit(query.limit)
       .skip(query.getSkip());
 
-    const count = await this.productModel.count(filter);
+    const count = await this.ProductModel.count(filter);
     return {
       currentPage: query.page,
       limit: query.limit,
@@ -374,13 +374,18 @@ export class ProductController {
   // @ApiTags('Public Product')
   // @Get('updateSlug')
   // async updateSlug() {
-  //   const projects = await this.productModel.find();
-  //   const promises = [];
-  //   projects.forEach((item) => {
-  //     item.slug = generateSlug(item.name);
-  //     promises.push(Promise.resolve(item.save()));
+  //   const categories = await this.CategoriesModel.find();
+  //   const products = await this.ProductModel.find();
+
+  //   const promise = [];
+  //   let index = 0;
+  //   products.forEach((dataset) => {
+  //     dataset.categories = categories[index]._id;
+  //     promise.push(Promise.resolve(dataset.save()));
+  //     index++;
+  //     if (index === categories.length) index = 0;
   //   });
 
-  //   return Promise.all(promises);
+  //   return Promise.all(promise);
   // }
 }
