@@ -22,7 +22,7 @@ export class CategoriesService {
   async getCategoriesWithProducts() {
     const categoriesMap = new Map();
     const [products, categories] = await Promise.all([
-      this.productModel.find(),
+      this.productModel.find().limit(12),
       this.categoriesModel.find(),
     ]);
 

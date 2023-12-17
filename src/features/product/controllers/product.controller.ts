@@ -369,4 +369,18 @@ export class ProductController {
       totalPage: Math.ceil(count / query.limit),
     };
   }
+
+  // @AuthNotRequired()
+  // @ApiTags('Public Product')
+  // @Get('updateSlug')
+  // async updateSlug() {
+  //   const projects = await this.productModel.find();
+  //   const promises = [];
+  //   projects.forEach((item) => {
+  //     item.slug = generateSlug(item.name);
+  //     promises.push(Promise.resolve(item.save()));
+  //   });
+
+  //   return Promise.all(promises);
+  // }
 }
