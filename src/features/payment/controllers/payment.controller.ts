@@ -38,6 +38,7 @@ import {
 } from '../schemas/transaction.schema';
 import { PaymentService } from '../services/payment.service';
 import { UpdateTransactionDto } from '../dtos/update-status-transaction';
+import { PaymentAnalysisService } from '../services/payment-analysis.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -45,6 +46,7 @@ import { UpdateTransactionDto } from '../dtos/update-status-transaction';
 export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
+    private readonly paymentAnalysisService: PaymentAnalysisService,
     private readonly recoverService: RecoverService,
     private readonly mailerService: MailerService,
 
@@ -52,6 +54,23 @@ export class PaymentController {
     @InjectModel(User.name) private UserModel: Model<User>,
     @InjectModel(Order.name) private OrderModel: Model<Order>,
   ) {}
+
+  @AuthNotRequired()
+  @ApiTags('Private Payment')
+  @Get('statistical-overview')
+  async statisticalOverview(
+    @Query('start_date') start_date: Date,
+    @Query('end_date') end_date: Date,
+  ) {
+    try {
+      return this.paymentAnalysisService.statisticalOverview(
+        new Date(start_date),
+        new Date(end_date),
+      );
+    } catch (error) {
+      throw new BadRequestException('Invalid Date');
+    }
+  }
 
   @AuthNotRequired()
   @ApiTags('Private Payment')
@@ -317,7 +336,10 @@ export class PaymentController {
       transaction: transactionSucceed,
       receiver: receiverSucceed,
       administrator: administratorSucceed,
-      message: 'Rút tiền thành công',
+      message:
+        status.transaction_type === ENUM_TRANSACTION_STATUS.PEENING
+          ? "'Rút tiền đang chờ xử lý'"
+          : 'Rút tiền thành công',
     };
   }
 }
