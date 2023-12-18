@@ -298,12 +298,13 @@ export class PaymentController {
 
   @ApiOperation({ summary: 'Thay đổi trạng thái rút tiền' })
   @ApiTags('Private Transaction')
-  @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
+  // @Roles(ENUM_ROLE_TYPE.ADMINISTRATION)
+  @AuthNotRequired()
   @Patch('withdrawal')
   async updateStatusWithdrawalTransaction(
     @Query('transactionID', new ParseObjectIdPipe()) id: string,
     @Query('receiverID', new ParseObjectIdPipe()) user: string,
-    @Query('status') status: UpdateTransactionDto,
+    @Query() query: UpdateTransactionDto,
   ) {
     const [transaction, receiver, administrator] = await Promise.all([
       this.TransactionModel.findById(id),
@@ -323,7 +324,7 @@ export class PaymentController {
     if (!administrator)
       throw new NotFoundException(`Không tìm thấy tài khoản #Administrator`);
 
-    transaction.status = status.transaction_type;
+    transaction.status = query.transaction_type;
 
     const [transactionSucceed, receiverSucceed, administratorSucceed] =
       await Promise.all([
@@ -337,7 +338,7 @@ export class PaymentController {
       receiver: receiverSucceed,
       administrator: administratorSucceed,
       message:
-        status.transaction_type === ENUM_TRANSACTION_STATUS.PEENING
+        query.transaction_type === ENUM_TRANSACTION_STATUS.PEENING
           ? "'Rút tiền đang chờ xử lý'"
           : 'Rút tiền thành công',
     };
