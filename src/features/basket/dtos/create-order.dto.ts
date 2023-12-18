@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsMongoId,
   IsNumber,
@@ -20,11 +21,11 @@ export class CreateOrderDto {
 
   @ApiProperty()
   @Min(1)
-  @IsNumber()
+  @Type(() => Number)
   quantity: number;
 
   @ApiProperty()
-  @IsNumber()
+  @Type(() => Number)
   @Min(1000)
   orderPrice: number;
 }

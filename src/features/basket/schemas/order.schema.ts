@@ -8,7 +8,8 @@ import { Promotion } from 'src/features/product/schemas/promotions.schema';
 
 export enum ENUM_ORDER_STATUS {
   SUCCESSFULLY = 'Giao dịch thành công',
-  FAILED = 'Chờ thanh toán',
+  PENDING = 'Chờ thanh toán',
+  FAILED = 'Giao dịch thất bại',
 }
 @Schema({ timestamps: true })
 export class Order extends Document {
@@ -23,7 +24,7 @@ export class Order extends Document {
 
   @Prop({
     enum: ENUM_ORDER_STATUS,
-    default: ENUM_ORDER_STATUS.FAILED,
+    default: ENUM_ORDER_STATUS.PENDING,
     index: true,
   })
   status: ENUM_ORDER_STATUS;
