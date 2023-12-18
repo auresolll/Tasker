@@ -8,6 +8,7 @@ import { Categories } from '../schemas/categories.schema';
 import { Rating } from '../schemas/rating.schema';
 import { map, orderBy } from 'lodash';
 import { Product } from '../schemas/product.schema';
+import { getFieldIds } from 'src/shared/utils/get-ids';
 
 @Injectable()
 export class CategoriesService {
@@ -21,17 +22,15 @@ export class CategoriesService {
 
   async getCategoriesWithProducts() {
     const categoriesMap = new Map();
-    const [products, categories] = await Promise.all([
-      this.productModel.find().limit(12),
-      this.categoriesModel.find(),
-    ]);
+    const categories = await this.categoriesModel.find();
 
-    categories.forEach((dataset) => {
-      categoriesMap.set(dataset.id, { ...dataset.toObject(), products: [] });
-    });
-    products.forEach((dataset) => {
-      const dataMap = categoriesMap.get(String(dataset.categories));
-      if (dataMap) dataMap['products'].push(dataset);
+    categories.forEach(async (dataset) => {
+      categoriesMap.set(dataset.id, {
+        ...dataset.toObject(),
+        products: await this.productModel
+          .find({ categories: dataset._id })
+          .limit(12),
+      });
     });
 
     return [...categoriesMap.values()];
