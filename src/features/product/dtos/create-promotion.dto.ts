@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDateString,
   IsMongoId,
@@ -8,15 +8,11 @@ import {
   Max,
   Min,
   isArray,
-} from "class-validator";
-import { ENUM_VOUCHER_TYPE } from "../schemas/voucher.schema";
+} from 'class-validator';
+import { ENUM_VOUCHER_TYPE } from '../schemas/voucher.schema';
+import { Type } from 'class-transformer';
 
-export class CreatePromotionDto {
-  @ApiProperty()
-  @IsMongoId()
-  @IsString()
-  voucherID: string;
-
+class BasePromotion {
   @ApiProperty()
   @IsDateString({ strict: true })
   start_date: Date;
@@ -24,13 +20,8 @@ export class CreatePromotionDto {
   @ApiProperty()
   @IsDateString({ strict: true })
   end_date: Date;
-
-  @ApiProperty()
-  @Min(0)
-  @Max(100)
-  @IsNumber()
-  min_purchase_amount: number;
-
+}
+export class CreateDiscountProductDto extends BasePromotion {
   @ApiProperty()
   @Min(0)
   @Max(100)
@@ -39,22 +30,21 @@ export class CreatePromotionDto {
 
   @ApiProperty()
   items: string[];
+}
+export class CreatePreferentialPriceDto extends BasePromotion {
+  @ApiProperty()
+  @Min(0)
+  @Max(100)
+  @IsNumber()
+  discount: number;
 
-  setFieldsBasedOnEnum() {
-    switch (this.voucherID) {
-      case ENUM_VOUCHER_TYPE.PRODUCT_DISCOUNT:
-        this.min_purchase_amount = null;
-        this.items = null;
-        break;
-      case ENUM_VOUCHER_TYPE.PREFERENTIAL_PRICE:
-        this.items = null;
-        break;
-      case ENUM_VOUCHER_TYPE.GIFT:
-        this.discount = null;
-        this.min_purchase_amount = null;
-        break;
-      default:
-        this.items = null;
-    }
-  }
+  @ApiProperty()
+  @Min(0)
+  @IsNumber()
+  min_purchase_amount: number;
+}
+
+export class CreateGiftDto extends BasePromotion {
+  @ApiProperty({ isArray: true })
+  products_ids: string[];
 }

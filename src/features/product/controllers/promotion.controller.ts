@@ -15,17 +15,20 @@ import { CurrentUser } from 'src/features/auth/decorators/current-user.decorator
 import { JwtAuthGuard } from 'src/features/auth/guard/jwt-auth.guard';
 import { User } from 'src/features/user/schemas/user.schema';
 import { PaginationDto } from 'src/shared/constants/pagination';
-import { ENUM_ROLE_TYPE, getAllRoles } from 'src/shared/constants/role';
+import { ENUM_ROLE_TYPE } from 'src/shared/constants/role';
 import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
 import { randomString } from 'src/shared/utils/random-string';
 import { Roles } from 'src/shared/utils/roles.decorator';
 import { RolesGuard } from 'src/shared/utils/roles.guard';
-import { CreatePromotionDto } from '../dtos/create-promotion.dto';
+import {
+  CreateDiscountProductDto,
+  CreateGiftDto,
+  CreatePreferentialPriceDto,
+} from '../dtos/create-promotion.dto';
 import { Product } from '../schemas/product.schema';
 import { Promotion } from '../schemas/promotions.schema';
 import { ENUM_VOUCHER_TYPE, Voucher } from '../schemas/voucher.schema';
 import { PromotionService } from './../services/promotion.service';
-import { getFieldIds } from 'src/shared/utils/get-ids';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -87,51 +90,79 @@ export class PromotionController {
   // }
 
   @ApiOperation({
-    summary: 'Tạo mã khuyến mãi (Người bán)',
+    summary: 'Tạo mã khuyến mãi Giảm giá sản phẩm (Người bán)',
   })
   @ApiTags('Private Promotions')
   @Roles(ENUM_ROLE_TYPE.SELLER)
   @Post('')
-  async createPromotions(
+  async createPromotionDiscountProduct(
     @CurrentUser() user: User,
-    @Body() body: CreatePromotionDto,
+    @Body() body: CreateDiscountProductDto,
   ) {
-    body.setFieldsBasedOnEnum();
+    const payload: Partial<Promotion> = {
+      user: user._id,
+      start_date: body.start_date,
+      end_date: body.end_date,
+      discount: body.discount,
+      code: randomString(10).toLocaleUpperCase(),
+      voucher: new Types.ObjectId(
+        ENUM_VOUCHER_TYPE.PRODUCT_DISCOUNT,
+      ) as unknown as Voucher,
+    };
 
+    return this.PromotionModel.create(payload);
+  }
+
+  @ApiOperation({
+    summary: 'Tạo mã khuyến mãi Ưu đãi giá (Người bán)',
+  })
+  @ApiTags('Private Promotions')
+  @Roles(ENUM_ROLE_TYPE.SELLER)
+  @Post('')
+  async createPromotionPreferentialPrice(
+    @CurrentUser() user: User,
+    @Body() body: CreatePreferentialPriceDto,
+  ) {
     const payload: Partial<Promotion> = {
       user: user._id,
       start_date: body.start_date,
       end_date: body.end_date,
       code: randomString(10).toLocaleUpperCase(),
-      voucher: new Types.ObjectId(body.voucherID) as unknown as Voucher,
+      discount: body.discount,
+      min_purchase_amount: body.min_purchase_amount,
+      voucher: new Types.ObjectId(
+        ENUM_VOUCHER_TYPE.PREFERENTIAL_PRICE,
+      ) as unknown as Voucher,
     };
 
-    if (body.voucherID === ENUM_VOUCHER_TYPE.PRODUCT_DISCOUNT) {
-      payload.discount = body.discount;
-    }
+    return this.PromotionModel.create(payload);
+  }
 
-    if (body.voucherID === ENUM_VOUCHER_TYPE.PREFERENTIAL_PRICE) {
-      payload.discount = body.discount;
-      payload.min_purchase_amount = body.min_purchase_amount;
-    }
+  @ApiOperation({
+    summary: 'Tạo mã khuyến mãi Quà tặng (Người bán)',
+  })
+  @ApiTags('Private Promotions')
+  @Roles(ENUM_ROLE_TYPE.SELLER)
+  @Post('')
+  async createPromotionGift(
+    @CurrentUser() user: User,
+    @Body() body: CreateGiftDto,
+  ) {
+    const products = await this.ProductModel.find({
+      id: { $in: body.products_ids },
+    });
 
-    if (body.voucherID === ENUM_VOUCHER_TYPE.VOUCHER) {
-      payload.discount = body.discount;
-    }
+    if (products.length !== body.products_ids.length)
+      throw new BadRequestException("Have product don't exist");
 
-    if (body.voucherID === ENUM_VOUCHER_TYPE.GIFT) {
-      const products = await this.ProductModel.find({
-        _id: { $in: body.items },
-      }).select('id');
-
-      if (body.items.length !== products.length) {
-        throw new BadRequestException(
-          'Mã quà tặng khi mua hàng có sản phẩm không được tìm thấy',
-        );
-      }
-
-      payload.items = body.items;
-    }
+    const payload: Partial<Promotion> = {
+      user: user._id,
+      start_date: body.start_date,
+      end_date: body.end_date,
+      items: body.products_ids,
+      code: randomString(10).toLocaleUpperCase(),
+      voucher: new Types.ObjectId(ENUM_VOUCHER_TYPE.GIFT) as unknown as Voucher,
+    };
 
     return this.PromotionModel.create(payload);
   }
