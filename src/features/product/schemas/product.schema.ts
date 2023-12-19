@@ -46,6 +46,9 @@ export class Product extends Document {
   @Prop({ unique: true, required: true, type: String, slug: 'title' })
   slug: string;
 
+  @Prop({ required: true, type: Array<object> })
+  attach: object | string | Array<object>;
+
   @Prop({ type: Date, default: null })
   deletedAt: Date;
 

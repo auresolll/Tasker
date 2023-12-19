@@ -1,12 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import {
-  IsArray,
-  IsMongoId,
-  IsNumber,
-  IsString,
-  Min
-} from "class-validator";
-import { Categories } from "../schemas/categories.schema";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsMongoId, IsNumber, IsString, Min } from 'class-validator';
+import { Categories } from '../schemas/categories.schema';
 
 export class CreateProductDto {
   @ApiProperty()
@@ -35,4 +29,7 @@ export class CreateProductDto {
   @ApiProperty()
   @IsString()
   description: string;
+
+  @ApiProperty()
+  attach: any;
 }

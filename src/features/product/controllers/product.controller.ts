@@ -222,6 +222,7 @@ export class ProductController {
         categories: new Types.ObjectId(element.categories),
         creator: user._id,
         slug: generateSlug(element.name),
+        attach: element.attach,
       });
     });
 
