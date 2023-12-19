@@ -24,14 +24,15 @@ export class CategoriesService {
     const categoriesMap = new Map();
     const categories = await this.categoriesModel.find();
 
-    categories.forEach(async (dataset) => {
+    for await (const dataset of categories) {
+      const products = await this.productModel
+        .find({ categories: dataset._id })
+        .limit(12);
       categoriesMap.set(dataset.id, {
         ...dataset.toObject(),
-        products: await this.productModel
-          .find({ categories: dataset._id })
-          .limit(12),
+        products,
       });
-    });
+    }
 
     return [...categoriesMap.values()];
   }
