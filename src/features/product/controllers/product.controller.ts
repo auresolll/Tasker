@@ -303,7 +303,6 @@ export class ProductController {
   })
   @ApiTags('Private Product')
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  // @AuthNotRequired()
   @Get('products-by-user')
   async getProductsByUser(
     @CurrentUser() user: User,

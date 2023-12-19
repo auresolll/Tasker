@@ -1,12 +1,11 @@
-import { Prop, Schema } from "@nestjs/mongoose";
-import { Document } from "mongoose";
-import { createSchemaForClassWithMethods } from "../../../shared/mongoose/create-schema";
+import { Prop, Schema } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+import { createSchemaForClassWithMethods } from '../../../shared/mongoose/create-schema';
 
 export enum ENUM_VOUCHER_TYPE {
-  PRODUCT_DISCOUNT = "655caa32d7b31be96da71a26",
-  PREFERENTIAL_PRICE = "655caa57d7b31be96da71a27",
-  VOUCHER = "655caa6fd7b31be96da71a28",
-  GIFT = "655caa88d7b31be96da71a29",
+  PRODUCT_DISCOUNT = '655caa32d7b31be96da71a26',
+  PREFERENTIAL_PRICE = '655caa57d7b31be96da71a27',
+  GIFT = '655caa88d7b31be96da71a29',
 }
 
 @Schema({ timestamps: true })

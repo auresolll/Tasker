@@ -33,6 +33,7 @@ import { Promotion } from 'src/features/product/schemas/promotions.schema';
 import { ParseObjectIdPipe } from 'src/shared/pipe/parse-object-id.pipe';
 import { AuthNotRequired } from 'src/features/auth/decorators/auth-not-required.decorator';
 import { UpdateStatusOrder } from '../dtos/update-status-order';
+import { ENUM_VOUCHER_TYPE } from 'src/features/product/schemas/voucher.schema';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('accessToken')
@@ -159,12 +160,24 @@ export class OrderController {
       ...body,
       user: user._id,
       product: product._id,
-      promotion: promotion ? promotion._id : null,
+      promotion: null,
       status: ENUM_ORDER_STATUS.FAILED,
-      totalPrice:
-        originalPrice -
-        (originalPrice * (promotion ? promotion.discount : 0)) / 100,
+      totalPrice: originalPrice,
     };
+
+    switch (promotion.id) {
+      case ENUM_VOUCHER_TYPE.PRODUCT_DISCOUNT:
+        payload.totalPrice =
+          originalPrice - (originalPrice * promotion.discount) / 100;
+        payload.promotion = promotion._id;
+        break;
+      case ENUM_VOUCHER_TYPE.PREFERENTIAL_PRICE:
+        if (payload.quantity < promotion.min_purchase_amount) break;
+        payload.totalPrice =
+          originalPrice - (originalPrice * promotion.discount) / 100;
+        payload.promotion = promotion._id;
+        break;
+    }
 
     product.numberHasSeller++;
     product.quantity -= body.quantity;

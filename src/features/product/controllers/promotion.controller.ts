@@ -94,7 +94,7 @@ export class PromotionController {
   })
   @ApiTags('Private Promotions')
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  @Post('')
+  @Post('discount-product')
   async createPromotionDiscountProduct(
     @CurrentUser() user: User,
     @Body() body: CreateDiscountProductDto,
@@ -118,7 +118,7 @@ export class PromotionController {
   })
   @ApiTags('Private Promotions')
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  @Post('')
+  @Post('preferential-price')
   async createPromotionPreferentialPrice(
     @CurrentUser() user: User,
     @Body() body: CreatePreferentialPriceDto,
@@ -143,7 +143,7 @@ export class PromotionController {
   })
   @ApiTags('Private Promotions')
   @Roles(ENUM_ROLE_TYPE.SELLER)
-  @Post('')
+  @Post('gift')
   async createPromotionGift(
     @CurrentUser() user: User,
     @Body() body: CreateGiftDto,
