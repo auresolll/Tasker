@@ -72,6 +72,25 @@ export class PaymentController {
     }
   }
 
+  @Roles(ENUM_ROLE_TYPE.SELLER)
+  @ApiTags('Private Payment')
+  @Get('statistical-overview-by-user')
+  async statisticalOverviewByUser(
+    @CurrentUser() user: User,
+    @Query('start_date') start_date: Date,
+    @Query('end_date') end_date: Date,
+  ) {
+    try {
+      return this.paymentAnalysisService.statisticalOverviewByUser(
+        user,
+        new Date(start_date),
+        new Date(end_date),
+      );
+    } catch (error) {
+      throw new BadRequestException('Invalid Date');
+    }
+  }
+
   @AuthNotRequired()
   @ApiTags('Private Payment')
   @Get('initiate-payment-order')

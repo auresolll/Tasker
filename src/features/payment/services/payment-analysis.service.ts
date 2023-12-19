@@ -15,6 +15,7 @@ import {
 import * as moment from 'moment';
 import { Order } from 'src/features/basket/schemas/order.schema';
 import { Product } from 'src/features/product/schemas/product.schema';
+import { getFieldIds } from 'src/shared/utils/get-ids';
 
 @Injectable()
 export class PaymentAnalysisService {
@@ -42,10 +43,46 @@ export class PaymentAnalysisService {
     const percentage = 5;
     const [orders, products] = await Promise.all([
       this.OrderModel.find(filter),
-      this.ProductModel.find(filter),
+      this.ProductModel.find(),
     ]);
     result.countOrders = orders.length;
     result.countProjects = products.length;
+    orders.forEach((dataset) => {
+      result.totalRevenue += dataset.totalPrice;
+      result.totalProfit += dataset.totalPrice;
+    });
+    result.totalProfit = (percentage / 100) * result.totalProfit;
+
+    return result;
+  }
+
+  async statisticalOverviewByUser(
+    user: User,
+    start_date: Date,
+    end_date: Date,
+  ) {
+    const result = {
+      totalRevenue: 0,
+      totalProfit: 0,
+      countOrders: 0,
+      countProducts: 0,
+    };
+
+    const percentage = 5;
+    const ownProducts = await this.ProductModel.find({ creator: user._id });
+
+    const filter = {
+      createdAt: {
+        $gte: start_date,
+        $lte: end_date,
+      },
+      product: { $in: getFieldIds(ownProducts) },
+    };
+
+    const orders = await this.OrderModel.find(filter);
+
+    result.countOrders = orders.length;
+    result.countProducts = ownProducts.length;
     orders.forEach((dataset) => {
       result.totalRevenue += dataset.totalPrice;
       result.totalProfit += dataset.totalPrice;
