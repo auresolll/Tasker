@@ -3,11 +3,11 @@
 		"host": "smtp.gmail.com",
 		"secure": false,
 		"auth": {
-			"user": "thinhlvps23580@fpt.edu.vn",
-			"pass": "bhnrmggkrtolutgq"
+			"user": "yourcreativityim@gmail.com",
+			"pass": "sgbmodhaskiaesjh"
 		}
 	},
 	"defaults": {
-		"from": "\"No Reply\" <thinhlvps23580@fpt.edu.vn>"
+		"from": "\"No Reply\" <yourcreativityim@gmail.com>"
 	}
 }

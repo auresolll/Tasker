@@ -4,27 +4,27 @@ import { join } from 'path';
 import { PATHS } from '../../../shared/constants/paths';
 
 export interface MailerSchema {
-    transport: MailerOptions['transport'];
-    defaults: MailerOptions['defaults'];
+  transport: MailerOptions['transport'];
+  defaults: MailerOptions['defaults'];
 }
 
 const defaultValue = {
-    transport: {
-        host: 'smtp.gmail.com',
-        secure: false,
-        auth: {
-            user: 'thinhlvps23580@fpt.edu.vn',
-            pass: 'bhnrmggkrtolutgq',
-        },
+  transport: {
+    host: 'smtp.gmail.com',
+    secure: false,
+    auth: {
+      user: 'yourcreativityim@gmail.com',
+      pass: 'sgbm odha skia esjh',
     },
-    defaults: {
-        from: '"No Reply" <thinhlvps23580@fpt.edu.vn>',
-    },
+  },
+  defaults: {
+    from: '"No Reply" <yourcreativityim@gmail.com>',
+  },
 };
 
 export const mailerConfig = ConfigFactory.getConfig<MailerSchema>(
-    join(PATHS.config, 'mailer.config.json'),
-    defaultValue
+  join(PATHS.config, 'mailer.config.json'),
+  defaultValue,
 );
 
 mailerConfig.initPrettify();
