@@ -5,6 +5,5 @@ import { PaginationDto } from 'src/shared/constants/pagination';
 
 export class UpdateStatusOrder {
   @ApiProperty({ enum: ENUM_ORDER_STATUS })
-  @IsString()
   status: ENUM_ORDER_STATUS;
 }

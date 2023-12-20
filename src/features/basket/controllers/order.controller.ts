@@ -196,12 +196,14 @@ export class OrderController {
   async updateStatusOrder(
     @CurrentUser() user: User,
     @Query('orderID', new ParseObjectIdPipe()) id: string,
-    @Query('status') status: UpdateStatusOrder,
+    @Query() status: UpdateStatusOrder,
   ) {
     if (user.deletedAt !== null)
       throw new BadGatewayException('Is Banned Account');
 
     const order = await this.orderModel.findById({ _id: id, user: user._id });
+
+    if (!order) throw new NotFoundException('Order Not found');
     const product = await this.productModel.findById(order.product);
     order.status = status.status;
     product.quantity -= order.quantity;
