@@ -165,18 +165,20 @@ export class OrderController {
       totalPrice: originalPrice,
     };
 
-    switch (promotion.id) {
-      case ENUM_VOUCHER_TYPE.PRODUCT_DISCOUNT:
-        payload.totalPrice =
-          originalPrice - (originalPrice * promotion.discount) / 100;
-        payload.promotion = promotion._id;
-        break;
-      case ENUM_VOUCHER_TYPE.PREFERENTIAL_PRICE:
-        if (payload.quantity < promotion.min_purchase_amount) break;
-        payload.totalPrice =
-          originalPrice - (originalPrice * promotion.discount) / 100;
-        payload.promotion = promotion._id;
-        break;
+    if (promotion) {
+      switch (promotion.id) {
+        case ENUM_VOUCHER_TYPE.PRODUCT_DISCOUNT:
+          payload.totalPrice =
+            originalPrice - (originalPrice * promotion.discount) / 100;
+          payload.promotion = promotion._id;
+          break;
+        case ENUM_VOUCHER_TYPE.PREFERENTIAL_PRICE:
+          if (payload.quantity < promotion.min_purchase_amount) break;
+          payload.totalPrice =
+            originalPrice - (originalPrice * promotion.discount) / 100;
+          payload.promotion = promotion._id;
+          break;
+      }
     }
 
     product.numberHasSeller++;
