@@ -163,6 +163,8 @@ export class OrderController {
       promotion: null,
       status: ENUM_ORDER_STATUS.FAILED,
       totalPrice: originalPrice,
+      attach: product.attach,
+      accompanyingProducts: product.accompanyingProducts,
     };
 
     if (promotion) {

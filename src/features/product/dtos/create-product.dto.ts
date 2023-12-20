@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsMongoId, IsNumber, IsString, Min } from 'class-validator';
 import { Categories } from '../schemas/categories.schema';
+import { AccompanyingProducts } from '../schemas/product.schema';
+import { Type } from 'class-transformer';
 
 export class CreateProductDto {
   @ApiProperty()
@@ -32,4 +34,7 @@ export class CreateProductDto {
 
   @ApiProperty()
   attach: any;
+
+  @ApiProperty({ isArray: true })
+  accompanyingProducts: AccompanyingProducts[];
 }

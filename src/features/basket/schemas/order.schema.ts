@@ -1,6 +1,9 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Product } from 'src/features/product/schemas/product.schema';
+import {
+  AccompanyingProducts,
+  Product,
+} from 'src/features/product/schemas/product.schema';
 import { User } from 'src/features/user/schemas/user.schema';
 import { ObjectId } from 'src/shared/mongoose/object-id';
 import { createSchemaForClassWithMethods } from '../../../shared/mongoose/create-schema';
@@ -21,6 +24,12 @@ export class Order extends Document {
 
   @Prop({ default: 1, min: 1, index: true })
   quantity: number;
+
+  @Prop({ type: Array, default: [] })
+  accompanyingProducts: AccompanyingProducts[];
+
+  @Prop({ required: true, type: Array<object> })
+  attach: object | string | Array<object>;
 
   @Prop({
     enum: ENUM_ORDER_STATUS,
