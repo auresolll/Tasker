@@ -183,14 +183,7 @@ export class OrderController {
       }
     }
 
-    product.numberHasSeller++;
-    product.quantity -= body.quantity;
-    const created = await this.orderModel
-      .create(payload)
-      .then(async (response) => {
-        await product.save();
-        return response;
-      });
+    const created = await this.orderModel.create(payload);
     return created;
   }
 
@@ -209,7 +202,11 @@ export class OrderController {
       throw new BadGatewayException('Is Banned Account');
 
     const order = await this.orderModel.findById({ _id: id, user: user._id });
+    const product = await this.productModel.findById(order.product);
     order.status = status.status;
+    product.quantity -= order.quantity;
+    product.numberHasSeller++;
+    await product.save();
     return order.save();
   }
 
