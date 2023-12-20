@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -8,6 +8,8 @@ import { CoreModule } from './core/core.module';
 import { environments } from './environments/environments';
 import { FeaturesModule } from './features/features.module';
 import { imageFileFilter, storage } from './shared/utils/file-upload.utils';
+import { LoggerModule } from './shared/logging/logger.module';
+import { WinstonLogLevel } from './shared/logging/logger.interface';
 
 @Module({
   imports: [
@@ -20,6 +22,30 @@ import { imageFileFilter, storage } from './shared/utils/file-upload.utils';
       }),
     }),
     MulterModule.register({ storage: storage, fileFilter: imageFileFilter }),
+    LoggerModule.forRootAsync(
+      {
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => {
+          return {
+            level: configService.get<WinstonLogLevel>('logger.level'),
+            consoleLevel: configService.get<WinstonLogLevel>(
+              'logger.consoleLevel',
+            ),
+            timestamp: configService.get<boolean>('logger.timestamp'),
+            maxFiles: configService.get<string>('logger.maxFiles'),
+            maxFileSize: configService.get<string>('logger.maxFileSize'),
+            disableConsoleAtProd: configService.get<boolean>(
+              'logger.disableConsoleAtProd',
+            ),
+            dir: configService.get<string>('logger.dir'),
+            errorLogName: configService.get<string>('logger.errorLogName'),
+            appLogName: configService.get<string>('logger.appLogName'),
+          };
+        },
+        inject: [ConfigService],
+      },
+      true,
+    ),
   ],
   controllers: [AppController],
   providers: [],

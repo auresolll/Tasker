@@ -1,9 +1,10 @@
 import {
-    ArgumentsHost,
-    Catch,
-    ExceptionFilter,
-    HttpException,
-    HttpStatus,
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  LoggerService,
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { Request } from 'express';
@@ -14,58 +15,57 @@ export type Exceptions = HttpException | WsException;
 
 @Catch(WsException, HttpException)
 export class ExceptionsFilter implements ExceptionFilter {
-    catch(exception: Exceptions, host: ArgumentsHost) {
-        const request = getRequest<Socket | Request>(host);
+  constructor(private logger: LoggerService) {}
 
-        const statusCode = this.isHttpException(exception)
-            ? exception.getStatus()
-            : HttpStatus.INTERNAL_SERVER_ERROR;
+  catch(exception: Exceptions, host: ArgumentsHost) {
+    const request = getRequest<Socket | Request>(host);
 
-        console.log(exception);
+    const statusCode = this.isHttpException(exception)
+      ? exception.getStatus()
+      : HttpStatus.INTERNAL_SERVER_ERROR;
 
-        const response = {
-            statusCode,
-            error: 'Error',
-            message: exception.message,
-            timestamp: Date.now() / 1000,
-        };
+    console.log(exception);
 
-        const error = this.isHttpException(exception)
-            ? exception.getResponse()
-            : exception.getError();
+    const response = {
+      statusCode,
+      error: 'Error',
+      message: exception.message,
+      timestamp: Date.now() / 1000,
+    };
 
-        if (typeof error === 'string') {
-            response.message = error;
-        } else {
-            Object.assign(response, error);
-        }
+    const error = this.isHttpException(exception)
+      ? exception.getResponse()
+      : exception.getError();
 
-        switch (host.getType()) {
-            case 'http':
-                host.switchToHttp()
-                    .getResponse()
-                    .status(statusCode)
-                    .json(response);
-                break;
-
-            case 'ws':
-                const callback = host.getArgByIndex(2);
-
-                if (typeof callback === 'function') {
-                    callback(response);
-                }
-
-                request.emit('exception', response);
-                break;
-
-            default:
-                break;
-        }
-
-        return response;
+    if (typeof error === 'string') {
+      response.message = error;
+    } else {
+      Object.assign(response, error);
     }
 
-    isHttpException(err: Exceptions): err is HttpException {
-        return err instanceof HttpException;
+    switch (host.getType()) {
+      case 'http':
+        host.switchToHttp().getResponse().status(statusCode).json(response);
+        break;
+
+      case 'ws':
+        const callback = host.getArgByIndex(2);
+
+        if (typeof callback === 'function') {
+          callback(response);
+        }
+
+        request.emit('exception', response);
+        break;
+
+      default:
+        break;
     }
+
+    return response;
+  }
+
+  isHttpException(err: Exceptions): err is HttpException {
+    return err instanceof HttpException;
+  }
 }
