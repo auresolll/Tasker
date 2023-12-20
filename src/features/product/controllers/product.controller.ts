@@ -223,6 +223,7 @@ export class ProductController {
         creator: user._id,
         slug: generateSlug(element.name),
         attach: element.attach,
+        accompanyingProducts: element.accompanyingProducts,
       });
     });
 
