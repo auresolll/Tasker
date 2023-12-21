@@ -224,6 +224,12 @@ export class ProductController {
         slug: generateSlug(element.name),
         attach: element.attach,
         accompanyingProducts: element.accompanyingProducts,
+        pictures:
+          element.pictures.length === 0
+            ? [
+                'https://firebasestorage.googleapis.com/v0/b/marketmmo.appspot.com/o/users%2F63351f539b613d345489037a.png?alt=media&token=d2a1e2c0-3288-4d33-abca-4d20bff04c6e',
+              ]
+            : element.pictures,
       });
     });
 
