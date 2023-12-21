@@ -30,10 +30,6 @@ export class UpdateProfileDto {
 
   @ApiProperty()
   @IsString()
-  phone: string;
-
-  @ApiProperty()
-  @IsString()
   @MinLength(0)
   @MaxLength(100)
   website: string;

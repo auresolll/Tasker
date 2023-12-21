@@ -140,14 +140,13 @@ export class SettingsController {
     @CurrentUser() user: User,
     @Body() body: UpdateProfileDto,
   ) {
-    const { avatar, bio, birthday, name, username, website, phone } = body;
+    const { avatar, bio, birthday, name, username, website } = body;
     user.avatar = avatar;
     user.bio = bio;
     user.birthday = birthday;
     user.name = name;
     user.username = username;
     user.website = website;
-    user.phone = phone;
     return {
       isProfile: (await user.save()) ? true : false,
     };
