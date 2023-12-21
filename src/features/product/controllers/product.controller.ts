@@ -375,18 +375,15 @@ export class ProductController {
   // @ApiTags('Public Product')
   // @Get('updateSlug')
   // async updateSlug() {
-  //   const categories = await this.CategoriesModel.find();
   //   const products = await this.ProductModel.find();
-
-  //   const promise = [];
-  //   let index = 0;
-  //   products.forEach((dataset) => {
-  //     dataset.categories = categories[index]._id;
-  //     promise.push(Promise.resolve(dataset.save()));
-  //     index++;
-  //     if (index === categories.length) index = 0;
+  //   const promises = [];
+  //   products.forEach((el) => {
+  //     el.categories = new Types.ObjectId(
+  //       String(el.categories),
+  //     ) as unknown as Categories;
+  //     promises.push(Promise.resolve(el.save()));
   //   });
 
-  //   return Promise.all(promise);
+  //   return Promise.all(promises);
   // }
 }

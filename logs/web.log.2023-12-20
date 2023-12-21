@@ -188,3 +188,95 @@
 {"context":"","level":"info","message":"API document has been generated, please visit: http://[::1]:5555/undefined/","pid":96896,"timestamp":"12/20/2023, 10:39:20 PM"}
 {"context":"","level":"info","message":"[GET] => - / - 🚀 🚄 ✈️  1ms","pid":96896,"timestamp":"12/20/2023, 10:39:23 PM"}
 {"context":"","level":"info","message":"[GET] => - / - 🚀 🚄 ✈️  0ms","pid":96896,"timestamp":"12/20/2023, 10:39:32 PM"}
+{"context":"WebSocketsController","level":"info","message":"UserGateway subscribed to the \"user:subscribe\" message","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"WebSocketsController","level":"info","message":"MessagesGateway subscribed to the \"message:direct\" message","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"WebSocketsController","level":"info","message":"MessagesGateway subscribed to the \"message:direct:typing\" message","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"AppController {/}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"UserController {/user}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/user/:userId, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/user, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/user/seller/:userId, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/user/update-role, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/user/banned-user, DELETE} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/user/bank, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/user/bank, DELETE} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"RecoverController {/recover}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/recover/forget/:code, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/recover/send-code, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/recover/change/:code, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"SettingsController {/settings}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/settings/username, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/settings/email, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/settings/email, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/settings/password, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/settings/profile, PUT} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/settings/two-factor-authentication, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/settings/role, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"AuthController {/auth}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/auth/login, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/auth/2FA/:code, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/auth/google-login, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/auth/refresh-token, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/auth/register, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/auth/logout-from-all-devices, DELETE} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/auth/me, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"OrderController {/order}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/order/all-orders, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/order/histories, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/order, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/order, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/order/histories-order-seller, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/order/histories-order-by-status, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/order/histories-order-by-user, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"ProductController {/product}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/product, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/product/hot, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/product/detail, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/product, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/product, PUT} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/product, DELETE} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/product/products-by-user, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/product/products-cancel, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"CategoriesController {/categories}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/categories, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/categories/populate, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/categories/with-products, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/categories, DELETE} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/categories, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/categories, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"CommentController {/comment}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/comment, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/comment, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/comment, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/comment, DELETE} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"RatingController {/rating}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/rating, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"PromotionController {/promotion}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/promotion, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/promotion/discount-product, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/promotion/preferential-price, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/promotion/gift, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/promotion, DELETE} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"VoucherController {/promotions}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/promotions/vouchers, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"MessageController {/message}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/message/info-users-chat, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/message/direct-first-message/:userId, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/message/direct/:userId, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/message/recall/:messageId, DELETE} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"MediaController {/media}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/media/direct-media, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/media/create-media, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RoutesResolver","level":"info","message":"PaymentController {/payment}:","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/payment/statistical-overview, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/payment/statistical-overview-by-user, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/payment/initiate-payment-order, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/payment/callback, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/payment/by-user, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/payment, GET} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/payment/withdrawal, POST} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"RouterExplorer","level":"info","message":"Mapped {/payment/withdrawal, PATCH} route","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"NestApplication","level":"info","message":"Nest application successfully started","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"","level":"info","message":"API service has been started, please visit: http://[::1]:5555","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}
+{"context":"","level":"info","message":"API document has been generated, please visit: http://[::1]:5555/undefined/","pid":97792,"timestamp":"12/20/2023, 10:44:27 PM"}

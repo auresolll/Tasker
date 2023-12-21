@@ -99,7 +99,7 @@ export class PaymentController {
     @Req() req: any,
     @Query() query: InitiatePaymentOrderDto,
   ): Promise<void> {
-    const returnUrl = 'https://marketmmo.vercel.app/';
+    const returnUrl = 'https://marketmmo.vercel.app/payment/callback';
 
     const ipAddress =
       req.headers['x-forwarded-for'] ||

@@ -71,7 +71,7 @@ async function bootstrap() {
   //     domain: 'ultimate-implicitly-hound.ngrok-free.app',
   //   })
   //   .then((listener) =>
-  //     logging.debug(`Ingress established at: ${listener.url()}`),
+  //     Logger.log(`Ingress established at: ${listener.url()}`),
   //   );
 }
 bootstrap();
